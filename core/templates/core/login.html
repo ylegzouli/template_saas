@@ -2,25 +2,36 @@
 {% load static %}
 
 {% block content %}
-    <div class="md:m-10 shadow-2xl">
-        <div class="grid grid-cols-1 md:grid-cols-2">
-            <div style="background-image: url('{% static 'images/login.png' %}'); background-size: cover; background-position: center; height: 100vh;"></div>
+<div class="md:m-10 shadow-2xl">
+    <div class="grid grid-cols-1 md:grid-cols-2">
+        <div style="background-image: url('{% static 'images/login.png' %}'); background-size: cover; background-position: center; height: 100vh;"></div>
+        
+        <div class="flex flex-col items-center justify-center h-screen">
+            <!-- Message Display -->
+            {% if messages %}
+            <ul class="list-disc text-red-500">
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <!-- End of Message Display -->
             
-            <div class="flex flex-col items-center justify-center h-screen">
-                <form method="post" action="{% url 'dashboard' %}" class="shadow-lg w-80">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.GET.next|default:'/dashboard/' }}">
-                    <div class="my-3 text-xl font-medium text-center">Login</div>
-                    <div class="p-5 pt-3">
-                        <input type="text" name="username" placeholder="Email Address" class="w-full p-3 my-3 border outline-0 placeholder:text-black">
-                        <input type="password" name="password" placeholder="Password" class="w-full p-3 my-3 border outline-0 placeholder:text-black">
-                        <div class="mb-3"><input type="checkbox" name="remember" id="remember" class="mr-2">Remember me</div>
-                    </div>
-                    <button type="submit" class="w-full p-3 text-xl font-medium text-center text-white bg-blue-600">Login</button>
-                </form>
-                <div><a href="{% url 'register' %}" class="inline-block mt-2 text-blue-500 underline">New? Sign up</a></div>
-            </div>
+            <form method="post" action="{% url 'login' %}" class="shadow-lg w-80"> <!-- Updated action URL -->
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next|default:'/dashboard/' }}">
+                <div class="my-3 text-xl font-medium text-center">Login</div>
+                <div class="p-5 pt-3">
+                    <input type="text" name="username" placeholder="Email Address" class="w-full p-3 my-3 border outline-0 placeholder:text-black">
+                    <input type="password" name="password" placeholder="Password" class="w-full p-3 my-3 border outline-0 placeholder:text-black">
+                    <div class="mb-3"><input type="checkbox" name="remember" id="remember" class="mr-2">Remember me</div>
+                </div>
+                <button type="submit" class="w-full p-3 text-xl font-medium text-center text-white bg-blue-600">Login</button>
+            </form>
+            <div><a href="{% url 'register' %}" class="inline-block mt-2 text-blue-500 underline">New? Sign up</a></div>
         </div>
     </div>
+</div>
 {% endblock %}
+
 
