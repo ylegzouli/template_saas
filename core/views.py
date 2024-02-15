@@ -9,13 +9,21 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
+
 def register(request):
+    # Redirect to dashboard if user is already logged in
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # auth_login(request, user)  # Log the user in after registering
-            return redirect('login')  # Redirect to the home page or another destination
+            # Optionally log the user in directly
+            # auth_login(request, user)
+            return redirect('login')  # Redirect to a login page or dashboard
+        else:
+            # Form is not valid, show a message to the user
+            messages.error(request, "Register failed, please retry.")
     else:
         form = CustomUserCreationForm()
     return render(request, 'core/register.html', {'form': form})
