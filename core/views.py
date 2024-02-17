@@ -10,8 +10,18 @@ from django.contrib import messages
 
 
 @login_required
-def profile(request):
-    return render(request, 'core/profile.html')
+def settings_view(request):
+    if request.htmx:
+        return render(request, 'core/app/settings/settings.html')
+    return render(request, 'core/app/settings/settings_full.html')
+
+
+@login_required
+def app_view(request):
+    if request.htmx:
+        return render(request, 'core/app/dashboard/app.html')
+    return render(request, 'core/app/dashboard/app_full.html')
+    
 
 
 def register(request):
@@ -51,11 +61,6 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
-
-@login_required
-def app_view(request):
-    return render(request, 'core/app/app.html')
-
 
 def home(request):
     return render(request, 'core/home.html', {})

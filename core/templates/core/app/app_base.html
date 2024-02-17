@@ -1,16 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^2.0/dist/tailwind.min.css" rel="stylesheet">
-    {% load static %}
+        {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
     <meta charset="UTF-8">
     <title>{% block title %}template{% endblock %}</title>
 </head>
-<body>  
 
-    {% block content %}{% endblock %}
+<body>
+
+    <div class="md:m-3 shadow-2xl">
+        <main class="relative h-screen overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-xl">
+            <div class="flex items-start justify-between">
+
+                <sidebar>
+                    {% include 'core/app/app_left_menu.html' %}
+                </sidebar>
+
+                <div class="flex flex-col w-full pl-0 md:p-4 md:space-y-4">
+
+                    {% include 'core/app/app_header.html' %}
+
+                    <div class="content-wrapper">
+                        <div id="content-div"
+                            class="h-screen pt-2 pb-24 pl-2 pr-2 overflow-auto md:pt-0 md:pr-0 md:pl-0"
+                            hx-history-elt>
+
+                            {% block content %}{% endblock %}
+
+                        </div>
+                    </div>
+        </main>
+    </div>
+
     <script src="https://unpkg.com/htmx.org@1.2.1"></script>
 </body>
+
 </html>
