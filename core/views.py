@@ -6,8 +6,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
 from django.contrib import messages
+
+
+@login_required
+def profile(request):
+    return render(request, 'core/profile.html')
 
 
 def register(request):
@@ -18,8 +22,6 @@ def register(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Optionally log the user in directly
-            # auth_login(request, user)
             return redirect('login')  # Redirect to a login page or dashboard
         else:
             # Form is not valid, show a message to the user
@@ -52,7 +54,7 @@ def logout_view(request):
 
 @login_required
 def dashboard_view(request):
-    return render(request, 'core/dashboard.html')
+    return render(request, 'core/dashboard/dashboard.html')
 
 
 def home(request):

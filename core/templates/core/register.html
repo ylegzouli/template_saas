@@ -3,32 +3,65 @@
 
 {% block content %}
 <div class="md:m-10 shadow-2xl">
+    <a href="/" class="absolute top-7 right-10 m-4 p-2 text-lg font-semibold" aria-label="Close">
+        &times;
+    </a>
     <div class="grid grid-cols-1 md:grid-cols-2">
-    <div style="background-image: url('{% static 'images/login.png' %}'); background-size: cover; background-position: center; height: 100vh;"></div>
-        
-        <div class="flex flex-col items-center justify-center h-screen">
-            <form method="post" action="{% url 'register' %}" class="shadow-lg w-80">
-                {% csrf_token %}
-                <div class="my-3 text-xl font-medium text-center">Register</div>
-                <div class="p-5 pt-3">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="bg-red-500 text-white p-2 my-2">
-                                {{ message }}
+        <section class="bg-gray-50 dark:bg-gray-900">
+            <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
+                <a href="/" aria-label="Company" title="Company" class="inline-flex items-center mb-3">
+                    <svg class="w-8 text-deep-purple-accent-400" viewBox="0 0 24 24" stroke-linejoin="round" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" stroke="currentColor" fill="none">
+                        <rect x="3" y="1" width="7" height="12"></rect>
+                        <rect x="3" y="17" width="7" height="6"></rect>
+                        <rect x="14" y="1" width="7" height="6"></rect>
+                        <rect x="14" y="11" width="7" height="12"></rect>
+                    </svg>
+                    <span class="ml-2 text-xl font-bold tracking-wide text-gray-800 uppercase">Company</span>
+                </a>
+                <div class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+                    <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+                        <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+                            Register
+                        </h1>
+                        <form class="space-y-4 md:space-y-6" method="post" action="{% url 'register' %}">
+                            {% csrf_token %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="bg-red-500 text-white p-2 my-2">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            <div>
+                                <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>
+                                <input type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Username" required="">
                             </div>
-                        {% endfor %}
-                    {% endif %}
-                    <input type="text" name="username" placeholder="Username" class="w-full p-3 my-3 border outline-0 placeholder:text-black">
-                    <input type="email" name="email" placeholder="Email Address" class="w-full p-3 my-3 border outline-0 placeholder:text-black">
-                    <input type="password" name="password1" placeholder="Password" class="w-full p-3 my-3 border outline-0 placeholder:text-black">
-                    <input type="password" name="password2" placeholder="Confirm Password" class="w-full p-3 my-3 border outline-0 placeholder:text-black">
-                    <button type="submit" class="w-full p-3 text-xl font-medium text-center text-white bg-blue-600">Register</button>
+                            <div>
+                                <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email Address</label>
+                                <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Email Address" required="">
+                            </div>
+                            <div>
+                                <label for="password1" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
+                                <input type="password" name="password1" id="password1" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Password" required="">
+                            </div>
+                            <div>
+                                <label for="password2" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm Password</label>
+                                <input type="password" name="password2" id="password2" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Confirm Password" required="">
+                            </div>
+                            <button type="submit" class="inline-flex items-center justify-center w-full h-9 px-5 text-sm font-small tracking-wide transition duration-200 rounded shadow-md focus:shadow-outline focus:outline-none bg-white text-black border-2 border-gray-600 hover:bg-gray-100 hover:text-black">
+                                Register
+                              </button>
+                              
+                            <!-- <button type="submit" class="w-full bg-white text-black border-2 border-black hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center hover:text-black">Register</button> -->
+                            <p class="text-sm font-light text-gray-500 dark:text-gray-400">
+                                Already have an account? <a href="{% url 'login' %}" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Login</a>
+                            </p>
+                        </form>
+                    </div>
                 </div>
-            </form>
-            <div class="mt-4">
-                <a href="{% url 'login' %}" class="text-blue-500 underline">Already have an account? Login</a>
             </div>
-        </div>
+        </section>
+        <div style="background-image: url('{% static 'images/home_2.png' %}'); background-size: cover; background-position: center; height: 100vh;"></div>
     </div>
 </div>
 {% endblock %}

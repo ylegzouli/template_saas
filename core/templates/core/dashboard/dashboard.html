@@ -1,0 +1,34 @@
+{% extends 'core/base.html' %}
+
+
+{% block content %}
+
+<div class="md:m-3 shadow-2xl">
+<main class="relative h-screen overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-xl">
+    <div class="flex items-start justify-between">
+        
+        {% include 'core/dashboard/dashboard_left_menu.html' %}
+
+        <div class="flex flex-col w-full pl-0 md:p-4 md:space-y-4">
+
+            {% include 'core/dashboard/dashboard_header.html' %}
+
+                <div class="h-screen pt-2 pb-24 pl-2 pr-2 overflow-auto md:pt-0 md:pr-0 md:pl-0">
+                    <!-- Replace the previous content with the new boxes area -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Each box should be resizable and draggable; add the necessary classes or attributes based on your chosen JS library -->
+                        <div class="resizable-draggable-box p-4 bg-white dark:bg-gray-700 shadow-lg rounded-xl">Box 1</div>
+                        <div class="resizable-draggable-box p-4 bg-white dark:bg-gray-700 shadow-lg rounded-xl">Box 2</div>
+                        <div class="resizable-draggable-box p-4 bg-white dark:bg-gray-700 shadow-lg rounded-xl">Box 3</div>
+                        <div class="resizable-draggable-box p-4 bg-white dark:bg-gray-700 shadow-lg rounded-xl">Box 4</div>
+                        <div class="resizable-draggable-box p-4 bg-white dark:bg-gray-700 shadow-lg rounded-xl">Box 5</div>
+                        <div class="resizable-draggable-box p-4 bg-white dark:bg-gray-700 shadow-lg rounded-xl">Box 6</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+{% endblock %}
