@@ -15,9 +15,9 @@ def profile(request):
 
 
 def register(request):
-    # Redirect to dashboard if user is already logged in
+    # Redirect to app if user is already logged in
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('app')
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -34,7 +34,7 @@ def register(request):
 def login_view(request):
     # Redirect to dashboard if user is already logged in
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('app')
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -42,7 +42,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('dashboard')  # Redirect only if user is authenticated
+            return redirect('app')  # Redirect only if user is authenticated
         else:
             messages.error(request, "Username or password incorrect")
             return render(request, 'core/login.html')  # Stay on login page if not authenticated
@@ -53,8 +53,8 @@ def logout_view(request):
     return redirect('login')
 
 @login_required
-def dashboard_view(request):
-    return render(request, 'core/dashboard/dashboard.html')
+def app_view(request):
+    return render(request, 'core/app/app.html')
 
 
 def home(request):
