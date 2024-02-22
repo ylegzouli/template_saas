@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
+from core.lib.api import get_company_list, format_json_response
 
 @login_required
 def settings_view(request):
@@ -15,13 +16,19 @@ def settings_view(request):
         return render(request, 'core/app/settings/settings.html')
     return render(request, 'core/app/settings/settings_full.html')
 
-
 @login_required
 def app_view(request):
+    raw = get_company_list()
+    data = format_json_response(raw)
     if request.htmx:
-        return render(request, 'core/app/dashboard/app.html')
-    return render(request, 'core/app/dashboard/app_full.html')
-    
+        return render(request, 'core/app/dashboard/app.html', {'projects': data})
+    return render(request, 'core/app/dashboard/app_full.html', {'projects': data})
+
+@login_required
+def app_view_2(request):
+    if request.htmx:
+        return render(request, 'core/app/dashboard_2/app.html', {'user': request.user})
+    return render(request, 'core/app/dashboard_2/app_full.html', {'user': request.user})
 
 
 def register(request):

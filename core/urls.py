@@ -12,6 +12,7 @@ urlpatterns = [
     
     
     path('app/main', views.app_view, name='app'),
+    path('app/main/2', views.app_view_2, name='app_2'),
     path('app/settings', views.settings_view, name='settings'),
 
 ]
