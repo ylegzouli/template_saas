@@ -6,26 +6,46 @@
             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
                     <th scope="col" class="px-6 py-3">
-                      <!-- <input type="checkbox" id="select-all" class="cursor-pointer"> -->
+                      <input type="checkbox" id="select-all" class="cursor-pointer">
                     </th>
-                    <!-- <th scope="col" class="px-6 py-3">Name</th> -->
+                    <th scope="col" class="px-6 py-3">Name</th>
                     <th scope="col" class="px-6 py-3">Link</th>
-                    <th scope="col" class="px-6 py-3">Description</th>
+                    <th scope="col" class="px-6 py-3">Categories</th>
+                    <th scope="col" class="px-6 py-3">email</th>
+                    <th scope="col" class="px-6 py-3">linkedin</th>
+                    <th scope="col" class="px-6 py-3">instagram</th>
+                    <th scope="col" class="px-6 py-3">facebook</th>
                     <th scope="col" class="px-6 py-3">Score</th>
                 </tr>
             </thead>
             <tbody>
                 {% for project in projects %}
                 <tr class="bg-white border-b">
-                    <!-- <th scope="row" class="px-6 py-4 font-medium text-gray-900">{{ project.name }}</th> -->
                     <td class="px-6 py-4">
                       <input type="checkbox" name="selected_item" value="{{ project.id }}" class="cursor-pointer"> <!-- Assuming each project has an ID -->
                     </td>
+
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-900">{{ project.name }}</th>
+                    
                     <td class="px-6 py-4">
-                        <a href="{{ project.name }}" class="text-blue-600 hover:underline">{{ project.name }}</a>
+                        <a target="_blank" href="{{ project.url }}" class="text-blue-600 hover:underline">{{ project.url }}</a>
                     </td>
-                    <td class="px-6 py-4">{{ project.description }}</td>
-                    <td class="px-6 py-4">{{ project.score }}</td>
+                    
+                    <td class="px-6 py-4">{{ project.categories }}</td>
+                    
+                    <td class="px-6 py-4">{{ project.email }}</td>
+                    <td class="px-6 py-4">
+                        <a target="_blank" href="{{ project.linkedin }}" class="text-blue-600 hover:underline">{{ project.linkedin }}</a>
+                    </td>
+                    <td class="px-6 py-4">
+                        <a target="_blank" href="{{ project.instagram }}" class="text-blue-600 hover:underline">{{ project.instagram }}</a>
+                    </td>
+                    <td class="px-6 py-4">
+                        <a target="_blank" href="{{ project.facebook }}" class="text-blue-600 hover:underline">{{ project.facebook }}</a>
+                    </td>
+                    
+                    <td class="px-6 py-4">{{ project.stars }}</td>
+
                 </tr>
                 {% endfor %}
             </tbody>

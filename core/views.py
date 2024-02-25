@@ -16,13 +16,21 @@ def settings_view(request):
         return render(request, 'core/app/settings/settings.html')
     return render(request, 'core/app/settings/settings_full.html')
 
+
 @login_required
 def app_view(request):
-    raw = get_company_list()
-    data = format_json_response(raw)
     if request.htmx:
+        query = request.GET.get('query', '')
+        country = request.GET.get('country', '')
+        city = request.GET.get('city', '')
+        raw = get_company_list(query=query, location=country, city=city)  # Adjust this function as needed
+        data = format_json_response(raw)
+        # print(data)
         return render(request, 'core/app/dashboard/app.html', {'projects': data})
-    return render(request, 'core/app/dashboard/app_full.html', {'projects': data})
+    else:
+        # Return the full page if not an HTMX request
+        return render(request, 'core/app/dashboard/app_full.html', {})
+
 
 @login_required
 def app_view_2(request):

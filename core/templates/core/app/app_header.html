@@ -1,30 +1,41 @@
-<header class="z-40 items-center w-full h-12 bg-white shadow-lg dark:bg-gray-700 rounded-m">
+<header class="z-40 items-center w-full h-12 bg-white shadow-lg dark:bg-gray-700 rounded-lg">
     <div class="relative z-20 flex flex-col justify-center h-full p-2 mx-auto flex-center">
         <div class="flex items-center w-full pl-1 lg:max-w-68 sm:pr-2 sm:ml-0">
             <div class="flex items-center w-full">
                 <div class="flex items-center w-full group">
 
                     <a href="/" aria-label="Company" title="Company" class="inline-flex items-center pl-2">
-                        <svg class="w-8 text-deep-purple-accent-400" viewBox="0 0 24 24" stroke-linejoin="round"
+                        <!-- <svg class="w-8 text-deep-purple-accent-400" viewBox="0 0 24 24" stroke-linejoin="round"
                             stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" stroke="currentColor" fill="none">
                             <rect x="3" y="1" width="7" height="12"></rect>
                             <rect x="3" y="17" width="7" height="6"></rect>
                             <rect x="14" y="1" width="7" height="6"></rect>
                             <rect x="14" y="11" width="7" height="12"></rect>
-                        </svg>
+                        </svg> -->
                         <span class="ml-2 text-xl font-bold tracking-wide text-gray-800 uppercase mr-10">KOKO</span>
                     </a>
 
                     <!-- Existing search input and buttons -->
-                    <input type="text" class="block w-full py-1.5 pl-10 pr-4 leading-normal rounded-2xl focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ring-opacity-90 bg-gray-100 dark:bg-gray-800 text-gray-400 aa-input" placeholder="Query"/>
-                    <select class="ml-2 block w-20 py-1.5 leading-normal rounded-2xl focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ring-opacity-90 bg-gray-100 dark:bg-gray-800 text-gray-400" aria-label="Country Code">
-                        <option value="US">US</option>
-                        <option value="CA">CA</option>
-                        <option value="UK">UK</option>
-                        <option value="AU">AU</option>
-                    </select>
-                    <input type="text" class="ml-2 block w-40 py-1.5 pl-4 pr-4 leading-normal rounded-2xl focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ring-opacity-90 bg-gray-100 dark:bg-gray-800 text-gray-400" placeholder="City"/>
-                    <button class="ml-2 px-4 py-1.5 leading-normal bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-lg focus:outline-none focus:shadow-outline" type="button">Search</button>
+                    <form id="searchForm" hx-get="/app/main" 
+                        hx-target="#content-div"
+                        hx-trigger="submit"
+                        hx-indicator="#content-loader"
+                        hx-swap="innerHTML"
+                        class="flex items-center w-full group">
+
+                        <input type="text" name="query" class="block w-full py-1.5 pl-3 pr-4 leading-normal rounded-2xl focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ring-opacity-90 bg-gray-100 dark:bg-gray-800 text-gray-400 aa-input" placeholder="Query"/>
+                        <select name="country" class="ml-2 pl-2 block w-20 py-1.5 leading-normal rounded-2xl focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ring-opacity-90 bg-gray-100 dark:bg-gray-800 text-gray-400" aria-label="Country Code">
+                            <option value="US">US</option>
+                            <option value="CA">CA</option>
+                            <option value="UK">UK</option>
+                            <option value="AU">AU</option>
+                            <option value="FR">FR</option>
+                        </select>
+                        <input name="city"  type="text" class="ml-2 block w-40 py-1.5 pl-4 pr-4 leading-normal rounded-2xl focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ring-opacity-90 bg-gray-100 dark:bg-gray-800 text-gray-400" placeholder="City"/>
+                        <button type="submit" class="ml-2 px-4 py-1.5 leading-normal bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-2xl focus:outline-none focus:shadow-outline" type="button">Search</button>
+                    </form>
+                    
+                    
                     <!-- Logout button with margin -->
                     <a href="/logout" class="flex items-center ml-4 p-3 pl-4 leading-tight transition-all rounded-lg outline-none text-start hover:bg-blue-gray-50 hover:bg-opacity-80 hover:text-blue-gray-900 focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900">
                         <div class="grid place-items-center mr-2">

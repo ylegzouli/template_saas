@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from openai import OpenAI
 import string
 
-client = OpenAI(api_key='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')
+client = OpenAI(api_key='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')
 
 def scrape_website_content(url):
     try:
@@ -31,11 +31,9 @@ def get_product_description(url):
                 {"role": "user", "content": content}
             ]
         )
-        print(url, "\n\n")
-        print(result.choices[0].message.content)
-        print("\n\n-----------------------------\n")
         return result.choices[0].message.content
-    except:
+    except Exception as e:
+        print(e)
         return ""
 
     
@@ -59,8 +57,26 @@ def score_potential(client_desc, prospect_descs):
 
     
 def score_prospect(prospect_desc):
+    # [TODO] replace client_desc 
 
     client_desc_en = "jewelry, rings, ear jewels, earrings, bracelets, brooches, ankle chains, waist chains, necklaces, jewelry sets, displays"
     
     score = score_potential(prospect_desc, client_desc_en) / len(prospect_desc.split(" "))
     return score
+
+def score_func(url):
+    desc = get_product_description(url=url)
+    score = score_prospect(desc)
+    return score
+
+def stars_prospects(score):
+    if score > 0.4:
+        return "⭐⭐⭐⭐⭐"
+    elif score > 0.2 and score <= 0.4:
+        return "⭐⭐⭐⭐"
+    elif score > 0.1 and score <= 0.2:
+        return "⭐⭐⭐"
+    elif score > 0.05 and score <= 0.1:
+        return "⭐⭐"
+    else:
+        return "⭐"
