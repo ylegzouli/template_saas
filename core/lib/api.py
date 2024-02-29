@@ -1,185 +1,272 @@
 #%%
 import requests
-from core.lib.score import score_func, stars_prospects
-# from score import score_func, stars_prospects
+from core.lib.score.openai_api import score_complete, get_lead_insight
+# from score.openai_api import score_complete, get_lead_insight, sort_by_stars, scrape_website_content
+import json
+from urllib.parse import urlparse
+import re
 
-api_key = "7fa615db-d3d3-44e8-71d9-39ea11ba"
 
-
-query = 'jewelry'  # Replace with your actual query
-location = 'FR'  # Replace with your actual location filter
+query = 'jewelry'
+location = 'fr'
 city="Paris"
+url_lead_example='https://eclatparis.com/'
 
 def get_company_list(query=query, location=location, city=city):
     url = "https://storeleads.app/json/api/v1/all/domain"
     headers = {'Authorization': f'Bearer {api_key}'}
+    cunjunct = []
+
+    if len(location) > 0:
+        cunjunct.append({"field": "cc", "operator": "or", "analyzer": "advanced", "match": location})
+    if len(city) > 0:
+        cunjunct.append({"field": "city", "operator": "or", "analyzer": "advanced", "match": city})
+
     params = {
-        'page_size': 10,
-        'q': query, 
-        'f:cc': location,
-        'f:city': city,
-        # 'fields': 'adresse,name,merchant_name,categories,contact_info'  # Fields you want to include in the response
-        'fields': 'street_address,name,merchant_name,categories, contact_info'  # Fields you want to include in the response
+        'bq': json.dumps({
+            "must": {
+            "conjuncts": cunjunct
+        },
+        "should": {
+            "disjuncts": [
+                    {"field": "desc", "operator": "or", "analyzer": "stemmer", "match": query}
+                ],
+                "min": 1
+            }
+        }),
+        'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
+        'page_size': 2,
+     }
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        return response.json()  # Returns the JSON response with specified fields
+    else:
+        return {'error': 'Failed to retrieve data', 'status_code': response.status_code}
+
+
+def get_domain_info(domain: str):
+    url = f"https://storeleads.app/json/api/v1/all/domain/{domain}"
+    headers = {'Authorization': f'Bearer {api_key}'}
+    params = {
+    'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
     }
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
         return response.json()  # Returns the JSON response with specified fields
     else:
         return {'error': 'Failed to retrieve data', 'status_code': response.status_code}
-    
 
-def add_score_list_data(list_data):
+
+def get_domain_from_url(url):
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc
+    return domain
+
+
+def add_score_list_data(list_data, url_lead_example, product):
     result = []
+
+    lead_base = get_lead_insight(url_lead_example)
+
     for data in list_data:
-        url = data['url']
-        print(url)
-        stars = stars_prospects(score_func(url))
-        data['stars'] = stars
-        result.append(data)
+        try: 
+            url = data['url']
+            print(url)
+            stars = score_complete(lead_base, url, product)
+            data['stars'] = stars
+            result.append(data)
+        except Exception as e:
+            print(e)
+            pass
+
     return result
 
 
 def extract_infos(info):
     email = []
-    instagram = []
-    linkedin = []
-    facebook = []
-    for contact in info['contact_info']:
-        try:
-            if contact['type'] == 'instagram':
-                instagram.append(contact['value'])
-            elif contact['type'] == 'email':
-                email.append(contact['value'])
-            elif contact['type'] == 'linkedin':
-                linkedin.append(contact['value'])
-            elif contact['type'] == 'facebook':
-                facebook.append(contact['value'])
-        except Exception as e:
-            print(e)
-            pass
-    return email, instagram, linkedin, facebook
+    list_instagram = []
+    list_linkedin = []
+    list_facebook = []
+    list_phone = []
+    try:
+        for contact in info['contact_info']:
+            try:
+                if contact['type'] == 'instagram':
+                    list_instagram.append(contact['value'])
+                elif contact['type'] == 'email':
+                    email.append(contact['value'])
+                elif contact['type'] == 'linkedin':
+                    list_linkedin.append(contact['value'])
+                elif contact['type'] == 'facebook':
+                    list_facebook.append(contact['value'])
+                elif contact['type'] == 'phone':
+                    list_phone.append(contact['value'])
+
+            except Exception as e:
+                print(e)
+                pass
+    except Exception as e:
+        print(e)
+        pass
+    instagram = list_instagram[0] if len(list_instagram) > 0 else None
+    linkedin = list_linkedin[0] if len(list_linkedin) > 0 else None
+    facebook = list_facebook[0] if len(list_facebook) > 0 else None
+    
+    return email, instagram, linkedin, facebook, list_phone 
 
 
-def format_json_response(json_response):
+def format_json_response(json_response, url_lead_example, product):
     formatted_data = []
     for item in json_response["domains"]:
-        email, insta, linkedin, facebook = extract_infos(item)
+        email, insta, linkedin, facebook, phones = extract_infos(item)
         formatted_item = {
             'name': item.get('merchant_name'),
             'url': f"https://{item.get('name')}",
             'categories': ", ".join(item.get('categories', [])),
             'email': "\n".join(email),
-            'instagram': "\n".join(insta),
-            'linkedin': "\n".join(linkedin),
-            'facebook': "\n".join(facebook)
+            'instagram': insta,
+            'linkedin': linkedin,
+            'facebook': facebook,
+            'phone': phones,
+            'nb_employee': item.get('employee_count'),
+            'ca': item.get('estimated_sales'),
+            'adress': None,
+            'source': "scorelead"
         }
         formatted_data.append(formatted_item)
-    result = add_score_list_data(formatted_data)
+    result = add_score_list_data(formatted_data, url_lead_example, product)
+    return result
+
+
+def get_googlem_data(query, country: str = "", location: str = ""):
+    url = 'https://places.googleapis.com/v1/places:searchText'
+    headers = {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': api_key_google,
+        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.types,places.websiteUri,places.internationalPhoneNumber'
+
+    }
+    data = {
+        "textQuery": f"{query}, {country}, {city}"
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+
+    # print(response.json())
+    return response.json()
+
+
+def format_json_response_google(json_response, url_lead_example, product):#, url_lead_example, product):
+    formatted_data = []
+    for item in json_response["places"]:
+        url = item.get('websiteUri', None)
+        if url is not None:
+            try:
+                name = item.get('displayName')['text']
+            except:
+                name = ""
+            formatted_item = {
+            'name': name,
+            'url': url,
+            'categories': ", ".join(item.get('types', [])),
+            'email': None,
+            'instagram': None,
+            'linkedin': None,
+            'facebook': None,
+            'phone': item.get('internationalPhoneNumber', None),
+            'nb_employee': None,
+            'ca': None,
+            'address': item.get('formattedAddress'),
+            'source': 'googlemap'
+            }
+            formatted_data.append(formatted_item)
+    print(formatted_data)
+    result = add_score_list_data(formatted_data, url_lead_example, product)
     return result
 
 #%%
 
-# test = get_company_list()
 
-#%%
+def get_data_scrapit(query, country, city, page=0):
 
-# print(test['domains'][0]['contact_info'])
+    url = f'https://api.scrape-it.cloud/scrape/google-maps/search?q={query}+{country}+{city}'
+    headers = {
+        'x-api-key': api_key_scrapit,
+        'start': str(page)
+    }
 
+    response = requests.get(url, headers=headers)
 
-# def extract_infos(info):
-#     email = []
-#     instagram = []
-#     linkedin = []
-#     for contact in test['contact_info']:
-#         try:
-#             if contact['type'] == 'instagram':
-#                 instagram.append(contact['value'])
-#             elif contact['type'] == 'email':
-#                 email.append(contact['value'])
-#             elif contact['type'] == 'linkedin':
-#                 linkedin.append(contact['value'])
-#         except Exception as e:
-#             print(e)
-#             pass
-#     return email, instagram, linkedin
+    data = response.json()
 
-    # print(email, instagram, linkedin)
+    return data['localResults']
 
 
 
-#%%
-# import requests
+def get_data_scrapit_mpages(query, country, city):
+    data_p1 = get_data_scrapit(query, country, city, 0)
+    # data_p2 = get_data_scrapit(query, country, city, 20)
+    # data_p3 = get_data_scrapit(query, country, city, 40)
+    # return data_p1 + data_p2 + data_p3
+    return data_p1
 
-# url = "https://recherche-entreprises.api.gouv.fr/search"
-# params = {
-#     "q": "Eclat Paris",
-#     "page": 1,
-#     "per_page": 2
-# }
-# headers = {
-    # "accept": "application/json"
-# }
+def extract_social_and_email_urls(url):
+    # Define regex patterns for matching URLs
+    patterns = {
+        'instagram': r'https?://www\.instagram\.com/[a-zA-Z0-9_.-]+(?!\.php|[a-zA-Z0-9_.-]+\.[a-zA-Z0-9]{2,})',
+        'facebook': r'https?://www\.facebook\.com/[a-zA-Z0-9_.-]+(?!\.[a-zA-Z0-9_.-]+\.[a-zA-Z0-9]{2,})',
+        'linkedin': r'https?://www\.linkedin\.com/in/[a-zA-Z0-9_.-]+(?!\.php|[a-zA-Z0-9_.-]+\.[a-zA-Z0-9]{2,})',
+         'email': r'\b[a-zA-Z0-9_.+-]{1,25}@[a-zA-Z0-9-]+\.(?!png\b|jpg\b)[a-zA-Z]{2,}\b'
+    }
 
-# response = requests.get(url, params=params, headers=headers)
-# print(response)
+    try:
+        response = requests.get(url)
+        html_content = response.text
+    except requests.RequestException as e:
+        print(f"Error fetching URL content: {e}")
+        return {}
 
-# for res in response.json()['results']:
-#     print(res)
-    # print(response.json())
+    found_urls = {}
+    for platform, pattern in patterns.items():
+        matches = re.findall(pattern, html_content)
+        if matches:
+            # For social links, keep only the first URL found
+            if platform in ['instagram', 'facebook', 'linkedin']:
+                found_urls[platform] = matches[0]  # Store as a single URL string
+            else:  # For email, keeping it as a list assuming there might be multiple and unique emails
+                found_urls[platform] = list(set(matches))[:1]  # Convert to set for uniqueness, then back to list
 
-#%%
-    
-
-
-# test = get_company_list(query="Jewelry")
-# print(test)
-
-# for res in test['domains']:
-    # print(res)
-
-
-#%%
-
-# add_score_list_data(test)
-
-# print(test['domains'][0]['contact_info'])
-
-# for contact in test['domains'][0]['contact_info']:
-#     # print(contact)
-#     if contact['type'] == "email":
-#         email = contact['value'] 
-#         print(email)
+    return found_urls
 
 
-# %%
+def format_json_response_scrapit(json_response, url_lead_example, product):
+    formatted_data = []
+    for item in json_response:
+        url = item.get('website', None)
+        name = item.get('title')
+        if url is not None:
+            try:
+                name = item.get('title')
+            except:
+                name = ""
+            social = extract_social_and_email_urls(url)
+            formatted_item = {
+            'name': name,
+            'url': url,
+            'categories': item.get('type', []),
+            'email': "\n".join(social.get('email', "")),
+            'instagram': social.get('instagram', None),
+            'linkedin': social.get('linkedin', None),
+            'facebook': social.get('facebook', None),
+            'phone': item.get('phone', None),
+            'nb_employee': None,
+            'ca': None,
+            'address': item.get('address', None),
+            'source': 'googlemap'
+            }
+            formatted_data.append(formatted_item)
+    result = add_score_list_data(formatted_data, url_lead_example, product)
+    return result 
 
 
-# import googlemaps
-
-# client object
-# client = googlemaps.Client(key = "AIzaSyA8sJE4G56oCkMckfsRo34CbmpzJeL-P90")
-
-# area within 500 m of The White House
-# lat =  38.897957, 
-# lon = -77.036560, # lat lon of The White House
-# radius = 500 # radius in meters
-# token = None # page token for going to next page of search
-
-# method 1
-# desirable_places = client.places(query = 'jewelry paris')
-# desirable_places = client.find_place('jewelry Paris', 'textquery')
-
-# # or use way # method 2
-# place_type = 'cafe'
-# desirable_places = client.places(type = place_type)
-
-# token for searching next page; to be used in a loop
-# token = desirable_places['next_page_token'] 
-
-# print(len(desirable_places))
-
-# print(desirable_places)
-
-# output
-# Found 20 places
 # %%

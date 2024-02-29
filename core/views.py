@@ -7,8 +7,12 @@ from django.contrib.auth import authenticate
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+# import openpyxl
+from django.http import HttpResponse
+from openpyxl import Workbook
 
-from core.lib.api import get_company_list, format_json_response
+from core.lib.api import get_company_list, format_json_response, get_data_scrapit_mpages, format_json_response_scrapit
+from core.lib.score.openai_api import sort_by_stars
 
 @login_required
 def settings_view(request):
@@ -18,18 +22,39 @@ def settings_view(request):
 
 
 @login_required
-def app_view(request):
+def app_view_ecommerce(request):
     if request.htmx:
         query = request.GET.get('query', '')
         country = request.GET.get('country', '')
         city = request.GET.get('city', '')
+        url_lead_example = request.GET.get('lead_url', '')
+        print(url_lead_example)
         raw = get_company_list(query=query, location=country, city=city)  # Adjust this function as needed
-        data = format_json_response(raw)
-        # print(data)
-        return render(request, 'core/app/dashboard/app.html', {'projects': data})
+        data = format_json_response(raw, url_lead_example, query)
+        data = sort_by_stars(data)
+        print("Load complete")
+        return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': data})
     else:
         # Return the full page if not an HTMX request
-        return render(request, 'core/app/dashboard/app_full.html', {})
+        return render(request, 'core/app/dashboard/app_ecommerce_full.html', {})
+
+
+@login_required
+def app_view_gmap(request):
+    if request.htmx:
+        query = request.GET.get('query', '')
+        country = request.GET.get('country', '')
+        city = request.GET.get('city', '')
+        url_lead_example = request.GET.get('lead_url', '')
+        print(url_lead_example)
+        raw_google = get_data_scrapit_mpages(query=query, country=country, city=city)
+        data = format_json_response_scrapit(raw_google, url_lead_example, query)
+        data = sort_by_stars(data)
+        print("Load complete")
+        return render(request, 'core/app/dashboard/app_gmap.html', {'projects': data})
+    else:
+        # Return the full page if not an HTMX request
+        return render(request, 'core/app/dashboard/app_gmap_full.html', {})
 
 
 @login_required
