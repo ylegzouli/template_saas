@@ -6,6 +6,11 @@ import json
 from urllib.parse import urlparse
 import re
 
+api_key = "7fa615db-d3d3-44e8-71d9-39ea11ba"
+api_key_google = "AIzaSyA8sJE4G56oCkMckfsRo34CbmpzJeL-P90"
+api_key_scrapio = "228|pKNfCnO3CdenftZIqynQzCMDB4wJfw0VzvDCuy9G"
+api_key_scrapit = '43452b4b-cbc1-49b9-8b36-fb1c3fc8cb6c'
+
 
 query = 'jewelry'
 location = 'fr'
@@ -13,6 +18,7 @@ city="Paris"
 url_lead_example='https://eclatparis.com/'
 
 def get_company_list(query=query, location=location, city=city):
+    print("Function: get_company_list()")
     url = "https://storeleads.app/json/api/v1/all/domain"
     headers = {'Authorization': f'Bearer {api_key}'}
     cunjunct = []
@@ -35,7 +41,7 @@ def get_company_list(query=query, location=location, city=city):
             }
         }),
         'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
-        'page_size': 2,
+        'page_size': 12,
      }
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
@@ -45,6 +51,7 @@ def get_company_list(query=query, location=location, city=city):
 
 
 def get_domain_info(domain: str):
+    print("Function: get_domain_info()")
     url = f"https://storeleads.app/json/api/v1/all/domain/{domain}"
     headers = {'Authorization': f'Bearer {api_key}'}
     params = {
@@ -58,12 +65,14 @@ def get_domain_info(domain: str):
 
 
 def get_domain_from_url(url):
+    print("Function: get_domain_from_url()")
     parsed_url = urlparse(url)
     domain = parsed_url.netloc
     return domain
 
 
 def add_score_list_data(list_data, url_lead_example, product):
+    print("Function: add_score_list_data()")
     result = []
 
     lead_base = get_lead_insight(url_lead_example)
@@ -72,8 +81,9 @@ def add_score_list_data(list_data, url_lead_example, product):
         try: 
             url = data['url']
             print(url)
-            stars = score_complete(lead_base, url, product)
+            stars, categorie = score_complete(lead_base, url, product)
             data['stars'] = stars
+            data['categories'] = categorie
             result.append(data)
         except Exception as e:
             print(e)
@@ -83,6 +93,7 @@ def add_score_list_data(list_data, url_lead_example, product):
 
 
 def extract_infos(info):
+    print("Function: extract_infos()")
     email = []
     list_instagram = []
     list_linkedin = []
@@ -116,29 +127,32 @@ def extract_infos(info):
 
 
 def format_json_response(json_response, url_lead_example, product):
+    print("Function: format_json_response()")
     formatted_data = []
     for item in json_response["domains"]:
         email, insta, linkedin, facebook, phones = extract_infos(item)
         formatted_item = {
             'name': item.get('merchant_name'),
             'url': f"https://{item.get('name')}",
-            'categories': ", ".join(item.get('categories', [])),
-            'email': "\n".join(email),
+            'categories': "",
+            'email': email,
             'instagram': insta,
             'linkedin': linkedin,
             'facebook': facebook,
             'phone': phones,
-            'nb_employee': item.get('employee_count'),
-            'ca': item.get('estimated_sales'),
+            'nb_employee': item.get('employee_count', ""),
+            'ca': item.get('estimated_sales', ""),
             'adress': None,
             'source': "scorelead"
         }
         formatted_data.append(formatted_item)
     result = add_score_list_data(formatted_data, url_lead_example, product)
     return result
+    # return formatted_data
 
 
 def get_googlem_data(query, country: str = "", location: str = ""):
+    print("Function: get_googlem_data()")
     url = 'https://places.googleapis.com/v1/places:searchText'
     headers = {
         'Content-Type': 'application/json',
@@ -157,6 +171,7 @@ def get_googlem_data(query, country: str = "", location: str = ""):
 
 
 def format_json_response_google(json_response, url_lead_example, product):#, url_lead_example, product):
+    print("Function: format_json_response_google()")
     formatted_data = []
     for item in json_response["places"]:
         url = item.get('websiteUri', None)
@@ -180,7 +195,7 @@ def format_json_response_google(json_response, url_lead_example, product):#, url
             'source': 'googlemap'
             }
             formatted_data.append(formatted_item)
-    print(formatted_data)
+    # print(formatted_data)
     result = add_score_list_data(formatted_data, url_lead_example, product)
     return result
 
@@ -188,7 +203,9 @@ def format_json_response_google(json_response, url_lead_example, product):#, url
 
 
 def get_data_scrapit(query, country, city, page=0):
-
+    print("Function: get_data_scrapit()")
+    query = query.replace(" ", "+")
+    print(query)
     url = f'https://api.scrape-it.cloud/scrape/google-maps/search?q={query}+{country}+{city}'
     headers = {
         'x-api-key': api_key_scrapit,
@@ -204,6 +221,7 @@ def get_data_scrapit(query, country, city, page=0):
 
 
 def get_data_scrapit_mpages(query, country, city):
+    print("Function: get_data_scrapit_mpages()")
     data_p1 = get_data_scrapit(query, country, city, 0)
     # data_p2 = get_data_scrapit(query, country, city, 20)
     # data_p3 = get_data_scrapit(query, country, city, 40)
@@ -211,6 +229,7 @@ def get_data_scrapit_mpages(query, country, city):
     return data_p1
 
 def extract_social_and_email_urls(url):
+    print("Function: extract_social_and_email_urls()")
     # Define regex patterns for matching URLs
     patterns = {
         'instagram': r'https?://www\.instagram\.com/[a-zA-Z0-9_.-]+(?!\.php|[a-zA-Z0-9_.-]+\.[a-zA-Z0-9]{2,})',
@@ -220,7 +239,7 @@ def extract_social_and_email_urls(url):
     }
 
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
         html_content = response.text
     except requests.RequestException as e:
         print(f"Error fetching URL content: {e}")
@@ -240,6 +259,7 @@ def extract_social_and_email_urls(url):
 
 
 def format_json_response_scrapit(json_response, url_lead_example, product):
+    print("Function: format_json_response_scrapit()")
     formatted_data = []
     for item in json_response:
         url = item.get('website', None)

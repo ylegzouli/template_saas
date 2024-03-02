@@ -1,7 +1,6 @@
 # core/urls.py
 from django.urls import path
 from . import views
-from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -11,7 +10,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     
     
-    path('app/ecommerce', views.app_view_ecommerce, name='app'),
+    path('app/e-commerce', views.app_view_ecommerce, name='app_ecommerce'),
     path('app/gmap', views.app_view_gmap, name='app_gmap'),
 
     # path('export/', views.export_to_excel, name='export_to_excel'),

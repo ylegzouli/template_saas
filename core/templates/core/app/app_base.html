@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^2.0/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
         {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
@@ -13,18 +13,17 @@
 
 <body>
 
-    <!-- <div class="md:m-3 shadow-2xl"> -->
-        <main class="relative h-screen overflow-hidden bg-gray-100 dark:bg-gray-800">
-            <div class="flex items-start justify-between">
-
-                    {% include 'core/app/app_left_menu.html' %}
-
-                <div class="flex flex-col w-full pl-0 md:p-1 md:space-y-1">
+        <main class="relative h-screen overflow-hidden bg-blue-50 dark:bg-gray-800">
+            <div class="flex justify-between h-screen p-3">
+                <div class="flex flex-col pr-2 w-1/6">
+                {% include 'core/app/app_left_menu.html' %}
+                </div>
+                <div class="flex flex-col w-5/6">
 
 
                     <div class="content-wrapper">
                         <div id="content-div"
-                            class="h-screen pt-2 pb-24 pl-2 pr-2 overflow-auto md:pt-0 md:pr-0 md:pl-0"
+                            class="overflow-auto"
                             hx-history-elt>
 
                             {% block content %}{% endblock %}
@@ -32,7 +31,25 @@
                         </div>
                     </div>
         </main>
-    <!-- </div> -->
+    <script>
+const colors = require('tailwindcss/colors')
+
+module.exports = {
+  theme: {
+    colors: {
+      transparent: 'transparent',
+      current: 'currentColor',
+      black: colors.black,
+      white: colors.white,
+      gray: colors.trueGray,
+      indigo: colors.indigo,
+      red: colors.rose,
+      yellow: colors.amber,
+    }
+  }
+}
+
+    </script>
 
     <script src="https://unpkg.com/htmx.org@1.2.1"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>

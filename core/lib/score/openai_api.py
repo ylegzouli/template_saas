@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 def sort_by_stars(data_list):
+    print("Function: sort_by_stars()")
     """
     Sorts a list of dictionaries based on the star rating in descending order.
     
@@ -24,9 +25,10 @@ def sort_by_stars(data_list):
     return sorted_list
 
 def scrape_website_content(url):
+    print("Function: scrape_website_content()")
     try:
         # Send a GET request to the URL
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
         # Raise an exception if the request was unsuccessful
         response.raise_for_status()
         
@@ -41,9 +43,10 @@ def scrape_website_content(url):
         return f"Error during requests to {url} : {str(e)}"
 
 
-
+client = OpenAI(api_key='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')
 
 def get_product_description(website_content):
+    print("Function: get_product_description()")
     try:
         # content = scrape_website_content(url)
         result = client.chat.completions.create(
@@ -62,15 +65,33 @@ def get_product_description(website_content):
         return ""
 
 
+def clean_categorie(categorie):
+    print("Function: get_product_description()")
+    try:
+        result = client.chat.completions.create(
+            timeout=50,
+            model="gpt-3.5-turbo",
+            # model="gpt-4",
+            messages=[
+                # {"role": "system", "content": "User will give you some website content. you're job is identify the product which are sells by the website owner by checking the information provide in the website content. Alwais give me this list in english. you're answer have to contain only a list of product type separate by comma."},
+                {"role": "system", "content": "User will give you a list of products/categories. I want you to resume it in one keyword categorie"},
+                {"role": "user", "content": categorie}
+            ]
+        )
+        return result.choices[0].message.content
+    except Exception as e:
+        print(e)
+        return ""
+
 def get_usertarget_description(website_content):
+    print("Function: get_usertarget_description()")
     try:
         # content = scrape_website_content(url)
         result = client.chat.completions.create(
             timeout=50,
             model="gpt-3.5-turbo",
             messages=[
-                #  {"role": "system", "content": "Based on the website content provided by the user, your job is to analyze and identify the target audience. Return all the target audience separate by comma. Provide your answer in English."},
-                {"role": "system", "content": "User will give you some website content. you're job is identify the audience which are the target of the website by checking the information provide. Alwais give me this list in english describe the target by keyword. you're answer have to contain only a list of audience type separate by comma."},
+                {"role": "system", "content": "User will give you some website content. your job is identify the audience which are the target of the website by checking the information provide. Alwais give me this list in english describe the target by keyword. you're answer have to contain only a list of audience type separate by comma."},
                 {"role": "user", "content": website_content}
             ]
         )
@@ -81,6 +102,7 @@ def get_usertarget_description(website_content):
 
 
 def custom_filter(website_content, product):
+    print("Function: custom_filter()")
     try:
         # content = scrape_website_content(url)
         result = client.chat.completions.create(
@@ -100,6 +122,7 @@ def custom_filter(website_content, product):
         return ""
 
 def eval_product(product_1, product_2):
+    print("Function: eval_product()")
     try:
         result = client.chat.completions.create(
             timeout=50,
@@ -123,12 +146,13 @@ def eval_product(product_1, product_2):
         return ""
 
 def eval_audience(audience_1, audience_2):
+    print("Function: eval_audience()")
     try:
         result = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": f"""
-                 user will provide you two list of users audiences, your job is to answer the question: is there similitude beetween the two audience ?
+                 user will provide you two list of users audiences, your job is to answer the question: is there similarity beetween the two audience taking care of the audience's revenu and audience's loves?
                  Answer only by YES or NO, Only answer YES if you are 100% sure of your answer.
                  """},
                 {"role": "user", "content": f"""
@@ -170,8 +194,8 @@ class LeadInsight():
         self.audiences = audiences
 
 
-
 def get_lead_insight(url):
+    print("Function: get_lead_insight()")
     content = scrape_website_content(url)
     products = get_product_description(content)
     audiences = get_usertarget_description(content)
@@ -182,6 +206,7 @@ def get_lead_insight(url):
     )
 
 def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: str):
+    print("Function: score_lead()")
     score_product = eval_product(insight_base.products, insight_target.products)
     print(score_product)
     score_audience = eval_audience(insight_base.audiences, insight_target.audiences)
@@ -192,9 +217,9 @@ def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: 
 
     score = 0
     if score_product.lower().find("yes") == 0:
-        score += 2
-    if score_audience.lower().find('yes') == 0:
         score += 1
+    if score_audience.lower().find('yes') == 0:
+        score += 2
     if score_custom.lower().find("yes") == 0:
         score += 1
 
@@ -202,22 +227,10 @@ def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: 
     return "⭐" * (score + 1)
 
 def score_complete(insight_base: LeadInsight, url_target: str, product: str):
+    print("Function: score_complete()")
     insight_target = get_lead_insight(url_target)
+    categorie = clean_categorie(insight_target.products)
 
-    return score_lead(insight_base, insight_target, product)
-
-
-#%%
-
-# insight_base = get_lead_insight(url_1)
-
-# urls = [url_2, url_3, url_4, url_5, url_6, url_7]
-
-# for url in urls:
-#     print(url)
-#     score = score_complete(insight_base, url, "Beauty Mirror")
-#     print(score)
-#     print("--------------------------------")
-
+    return score_lead(insight_base, insight_target, product), categorie
 
 # %%
