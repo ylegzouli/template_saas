@@ -43,7 +43,7 @@ def scrape_website_content(url):
         return f"Error during requests to {url} : {str(e)}"
 
 
-client = OpenAI(api_key='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')
+client = OpenAI(api_key='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')
 
 def get_product_description(website_content):
     print("Function: get_product_description()")

@@ -41,7 +41,7 @@ def get_company_list(query=query, location=location, city=city):
             }
         }),
         'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
-        'page_size': 12,
+        'page_size': 100,
      }
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
