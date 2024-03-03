@@ -5,11 +5,12 @@ from core.lib.score.openai_api import score_complete, get_lead_insight
 import json
 from urllib.parse import urlparse
 import re
+import os
 
-api_key = "7fa615db-d3d3-44e8-71d9-39ea11ba"
-api_key_google = "AIzaSyA8sJE4G56oCkMckfsRo34CbmpzJeL-P90"
-api_key_scrapio = "228|pKNfCnO3CdenftZIqynQzCMDB4wJfw0VzvDCuy9G"
-api_key_scrapit = '43452b4b-cbc1-49b9-8b36-fb1c3fc8cb6c'
+
+STORELEAD_APIKEY=os.getenv('STORELEADS_APIKEY')
+SCRAPIT_APIKEY=os.getenv('SCRAPIT_APIKEY')
+GOOGLE_APIKEY=os.getenv('GOOGLE_APIKEY')
 
 
 query = 'jewelry'
@@ -20,7 +21,7 @@ url_lead_example='https://eclatparis.com/'
 def get_company_list(query=query, location=location, city=city):
     print("Function: get_company_list()")
     url = "https://storeleads.app/json/api/v1/all/domain"
-    headers = {'Authorization': f'Bearer {api_key}'}
+    headers = {'Authorization': f'Bearer {STORELEAD_APIKEY}'}
     cunjunct = []
 
     if len(location) > 0:
@@ -53,7 +54,7 @@ def get_company_list(query=query, location=location, city=city):
 def get_domain_info(domain: str):
     print("Function: get_domain_info()")
     url = f"https://storeleads.app/json/api/v1/all/domain/{domain}"
-    headers = {'Authorization': f'Bearer {api_key}'}
+    headers = {'Authorization': f'Bearer {STORELEAD_APIKEY}'}
     params = {
     'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
     }
@@ -156,7 +157,7 @@ def get_googlem_data(query, country: str = "", location: str = ""):
     url = 'https://places.googleapis.com/v1/places:searchText'
     headers = {
         'Content-Type': 'application/json',
-        'X-Goog-Api-Key': api_key_google,
+        'X-Goog-Api-Key': GOOGLE_APIKEY,
         'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.types,places.websiteUri,places.internationalPhoneNumber'
 
     }
@@ -208,7 +209,7 @@ def get_data_scrapit(query, country, city, page=0):
     print(query)
     url = f'https://api.scrape-it.cloud/scrape/google-maps/search?q={query}+{country}+{city}'
     headers = {
-        'x-api-key': api_key_scrapit,
+        'x-api-key': SCRAPIT_APIKEY,
         'start': str(page)
     }
 

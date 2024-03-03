@@ -3,6 +3,9 @@
 from openai import OpenAI
 import requests
 from bs4 import BeautifulSoup
+import os
+
+API_KEY = os.getenv('OPENAI_APIKEY')
 
 def sort_by_stars(data_list):
     print("Function: sort_by_stars()")
@@ -42,8 +45,7 @@ def scrape_website_content(url):
         print(e)
         return f"Error during requests to {url} : {str(e)}"
 
-
-client = OpenAI(api_key='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')
+client = OpenAI(api_key=API_KEY)
 
 def get_product_description(website_content):
     print("Function: get_product_description()")
