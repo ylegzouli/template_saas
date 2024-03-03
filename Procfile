@@ -5,3 +5,4 @@ web: gunicorn getkoko.wsgi
 # https://docs.djangoproject.com/en/5.0/topics/migrations/
 # https://devcenter.heroku.com/articles/release-phase
 release: ./manage.py migrate --no-input
+python manage.py collectstatic --noinput;
