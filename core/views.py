@@ -36,7 +36,6 @@ def app_view_ecommerce(request):
         if 'hx_menu_request' in request.GET.keys():
             return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE})
         else:
-            # time.sleep(15)
             # Process the request as before
             CACHE_ECOMMERCE = None
             query = request.GET.get('query', '')
@@ -55,16 +54,23 @@ def app_view_ecommerce(request):
         return render(request, 'core/app/dashboard/app_ecommerce_full.html', {})
 
 
-
 @login_required
 def app_view_gmap(request):
     print("Views: app_view_gmap()")
+    global CACHE_GMAP
+    # Check if the request is made via HTMX
     if request.htmx:
-        if 'hx_menu_request' in request.GET:
-            print("htmx_menu")
-            return render(request, 'core/app/dashboard/app_gmap.html')
+            # Check if the clear cache action was triggered
+        if 'clear_cache' in request.GET.keys():
+            CACHE_GMAP = []
+            return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP})
+
+        # Check if the request is specifically from the left menu
+        if 'hx_menu_request' in request.GET.keys():
+            return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP})
         else:
-            print("htmx_load_data")
+            # Process the request as before
+            CACHE_GMAP = None
             query = request.GET.get('query', '')
             country = request.GET.get('country', '')
             city = request.GET.get('city', '')
@@ -73,8 +79,9 @@ def app_view_gmap(request):
             raw_google = get_data_scrapit_mpages(query=query, country=country, city=city)
             data = format_json_response_scrapit(raw_google, url_lead_example, query)
             data = sort_by_stars(data)
+            CACHE_GMAP = data
             print("Load complete")
-            return render(request, 'core/app/dashboard/app_gmap.html', {'projects': data})
+            return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP})
     else:
         # Return the full page if not an HTMX request
         return render(request, 'core/app/dashboard/app_gmap_full.html', {})
