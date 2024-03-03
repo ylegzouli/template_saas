@@ -45,7 +45,7 @@ def app_view_ecommerce(request):
             print(url_lead_example)
             raw = get_company_list(query=query, location=country, city=city)  # Adjust this function as needed
             data = format_json_response(raw, url_lead_example, query)
-            data = sort_by_stars(data)
+            # data = sort_by_stars(data)
             CACHE_ECOMMERCE = data
             print("Load complete")
             return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE})
@@ -78,7 +78,7 @@ def app_view_gmap(request):
             print(url_lead_example)
             raw_google = get_data_scrapit_mpages(query=query, country=country, city=city)
             data = format_json_response_scrapit(raw_google, url_lead_example, query)
-            data = sort_by_stars(data)
+            # data = sort_by_stars(data)
             CACHE_GMAP = data
             print("Load complete")
             return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP})

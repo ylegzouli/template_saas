@@ -42,7 +42,7 @@ def get_company_list(query=query, location=location, city=city):
             }
         }),
         'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
-        'page_size': 2,
+        'page_size': 100,
      }
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
@@ -147,9 +147,9 @@ def format_json_response(json_response, url_lead_example, product):
             'source': "scorelead"
         }
         formatted_data.append(formatted_item)
-    result = add_score_list_data(formatted_data, url_lead_example, product)
-    return result
-    # return formatted_data
+    # result = add_score_list_data(formatted_data, url_lead_example, product)
+    # return result
+    return formatted_data
 
 
 def get_googlem_data(query, country: str = "", location: str = ""):
@@ -286,8 +286,9 @@ def format_json_response_scrapit(json_response, url_lead_example, product):
             'source': 'googlemap'
             }
             formatted_data.append(formatted_item)
-    result = add_score_list_data(formatted_data, url_lead_example, product)
-    return result 
+    # result = add_score_list_data(formatted_data, url_lead_example, product)
+    # return result 
+    return formatted_data
 
 
 # %%
