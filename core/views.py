@@ -6,10 +6,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from background_task import tasks
 
 
 from core.lib.api import get_company_list, format_json_response, get_data_scrapit_mpages, format_json_response_scrapit
 from core.lib.score.openai_api import sort_by_stars
+from core.lib.score.background_score import notify_user
 
 CACHE_ECOMMERCE = []
 CACHE_GMAP = []
@@ -37,16 +39,18 @@ def app_view_ecommerce(request):
             return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE})
         else:
             # Process the request as before
-            CACHE_ECOMMERCE = None
-            query = request.GET.get('query', '')
-            country = request.GET.get('country', '')
-            city = request.GET.get('city', '')
-            url_lead_example = request.GET.get('lead_url', '')
-            print(url_lead_example)
-            raw = get_company_list(query=query, location=country, city=city)  # Adjust this function as needed
-            data = format_json_response(raw, url_lead_example, query)
-            # data = sort_by_stars(data)
-            CACHE_ECOMMERCE = data
+            test = notify_user()
+            print(test)
+            # CACHE_ECOMMERCE = None
+            # query = request.GET.get('query', '')
+            # country = request.GET.get('country', '')
+            # city = request.GET.get('city', '')
+            # url_lead_example = request.GET.get('lead_url', '')
+            # print(url_lead_example)
+            # raw = get_company_list(query=query, location=country, city=city)  # Adjust this function as needed
+            # data = format_json_response(raw, url_lead_example, query)
+            # # data = sort_by_stars(data)
+            # CACHE_ECOMMERCE = data
             print("Load complete")
             return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE})
     else:

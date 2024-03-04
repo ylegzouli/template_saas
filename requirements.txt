@@ -24,4 +24,6 @@ typing_extensions==4.10.0
 urllib3==2.2.1
 gunicorn
 python-dotenv
-whitenoise  
+whitenoise
+django-background-tasks
+channels
