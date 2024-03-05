@@ -26,4 +26,3 @@ gunicorn
 python-dotenv
 whitenoise
 django-background-tasks
-channels
