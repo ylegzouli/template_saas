@@ -14,8 +14,10 @@ urlpatterns = [
     path('app/e-commerce', views.app_view_ecommerce, name='app_ecommerce'),
     path('app/gmap', views.app_view_gmap, name='app_gmap'),
 
-    # path('export/', views.export_to_excel, name='export_to_excel'),
-    # path('app/main/2', views.app_view_2, name='app_2'),
+    
+    path('start_task/', views.start_task_ecommerce, name='start_task'),
+    path('check_task_status/<str:task_id>/', views.check_task_status, name='check_task_status'),
+    
     # path('app/settings', views.settings_view, name='settings'),
 
 ]

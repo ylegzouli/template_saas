@@ -17,8 +17,21 @@ query = 'jewelry'
 location = 'fr'
 city="Paris"
 url_lead_example='https://eclatparis.com/'
+revenue=None
 
-def get_company_list(query=query, location=location, city=city):
+def calculate_revenue(revenue):
+    if revenue == "0-50k":
+        return 0, 5000000
+    elif revenue == "50k-2M":
+        return 5000000, 200000000
+    elif revenue == "2M-10M":
+        return 200000000, 1000000000
+    elif revenue == "10M-50M":
+        return 1000000000, 5000000000
+    elif revenue == "+50M":
+        return 5000000000, None
+
+def get_company_list(query=query, location=location, city=city, revenue=revenue):
     print("Function: get_company_list()")
     url = "https://storeleads.app/json/api/v1/all/domain"
     headers = {'Authorization': f'Bearer {STORELEAD_APIKEY}'}
@@ -28,7 +41,19 @@ def get_company_list(query=query, location=location, city=city):
         cunjunct.append({"field": "cc", "operator": "or", "analyzer": "advanced", "match": location})
     if len(city) > 0:
         cunjunct.append({"field": "city", "operator": "or", "analyzer": "advanced", "match": city})
-
+    
+    if len(revenue) > 0:
+        min_revenue, max_revenue = calculate_revenue(revenue)
+        print(min_revenue, max_revenue)
+        er = {"field": "er"}
+        if min_revenue is not None:
+            er['min'] = min_revenue
+            er['inclusive_min'] = True
+        if max_revenue is not None:
+            er['max'] = max_revenue
+            er['inclusive_max'] = True
+        cunjunct.append(er)
+    
     params = {
         'bq': json.dumps({
             "must": {
@@ -42,13 +67,17 @@ def get_company_list(query=query, location=location, city=city):
             }
         }),
         'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
-        'page_size': 20,
-     }
+        'page_size': 10,
+
+     }    
+    
     response = requests.get(url, headers=headers, params=params)
+    # print(response.json())
     if response.status_code == 200:
         return response.json()  # Returns the JSON response with specified fields
     else:
-        return {'error': 'Failed to retrieve data', 'status_code': response.status_code}
+        print("ERROR!!!!!!!!!!!!!!!!!!!!")
+        return {'error': 'Failed to retrieve data', 'status_code': response.status_code, 'domains': {}}
 
 
 def get_domain_info(domain: str):
@@ -127,11 +156,12 @@ def extract_infos(info):
     return email, instagram, linkedin, facebook, list_phone 
 
 
-def format_json_response(json_response, url_lead_example, product):
+def format_json_response(json_response):
     print("Function: format_json_response()")
     formatted_data = []
     for item in json_response["domains"]:
         email, insta, linkedin, facebook, phones = extract_infos(item)
+        ca = str(int(int(item.get('estimated_sales', 0)) / 100)) if item.get('estimated_sales', "") else "" 
         formatted_item = {
             'name': item.get('merchant_name'),
             'url': f"https://{item.get('name')}",
@@ -142,14 +172,14 @@ def format_json_response(json_response, url_lead_example, product):
             'facebook': facebook,
             'phone': phones,
             'nb_employee': item.get('employee_count', ""),
-            'ca': item.get('estimated_sales', ""),
+            'ca': ca,
             'adress': None,
             'source': "scorelead"
         }
         formatted_data.append(formatted_item)
-    result = add_score_list_data(formatted_data, url_lead_example, product)
-    return result
-    # return formatted_data
+    # result = add_score_list_data(formatted_data, url_lead_example, product)
+    # return result
+    return formatted_data
 
 
 def get_googlem_data(query, country: str = "", location: str = ""):
@@ -216,6 +246,7 @@ def get_data_scrapit(query, country, city, page=0):
     response = requests.get(url, headers=headers)
 
     data = response.json()
+    print(data)
 
     return data['localResults']
 
@@ -286,9 +317,9 @@ def format_json_response_scrapit(json_response, url_lead_example, product):
             'source': 'googlemap'
             }
             formatted_data.append(formatted_item)
-    result = add_score_list_data(formatted_data, url_lead_example, product)
-    return result 
-    # return formatted_data
+    # result = add_score_list_data(formatted_data, url_lead_example, product)
+    # return result 
+    return formatted_data
 
 
 # %%

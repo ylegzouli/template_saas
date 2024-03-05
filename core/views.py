@@ -6,53 +6,72 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from background_task import tasks
+from django.http import JsonResponse
+from django.core.cache import cache
+import uuid
+import time
 
 
 from core.lib.api import get_company_list, format_json_response, get_data_scrapit_mpages, format_json_response_scrapit
 from core.lib.score.openai_api import sort_by_stars
 from core.lib.score.background_score import notify_user
 
-CACHE_ECOMMERCE = []
 CACHE_GMAP = []
 
-@login_required
-def settings_view(request):
-    if request.htmx:
-        return render(request, 'core/app/settings/settings.html')
-    return render(request, 'core/app/settings/settings_full.html')
+
+def check_task_status(request, task_id):
+    print("Fuction: check_task_status()")
+    result = cache.get(task_id)
+    if result:
+        print(f"task: {task_id} complete.")
+        return JsonResponse({"status": "completed", "result": result})
+    else:
+        print(f"task: {task_id} pending.")
+        return JsonResponse({"status": "pending"})
+
+def start_task_ecommerce(request):
+    print("Fuction: start_task_ecommerce()")
+    url_lead = request.POST.get('lead_url', 'Default Value If Not Present')
+    print(url_lead)
+    task_id = str(uuid.uuid4())
+    notify_user(task_id=task_id, email=request.user.email, url=url_lead, schedule=5)
+    return JsonResponse({"task_id": task_id})
 
 
 @login_required
 def app_view_ecommerce(request):
     print("Views: app_view_ecommerce()")
-    global CACHE_ECOMMERCE
+    cache_id = f"{request.user.email}_ecommerce"
+    print(cache_id)
     # Check if the request is made via HTMX
     if request.htmx:
             # Check if the clear cache action was triggered
         if 'clear_cache' in request.GET.keys():
-            CACHE_ECOMMERCE = [] 
-            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE})
+            CACHE_ECOMMERCE = {}
+            cache.set(cache_id, CACHE_ECOMMERCE, timeout=3600)
+            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
 
         # Check if the request is specifically from the left menu
         if 'hx_menu_request' in request.GET.keys():
-            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE})
+            CACHE_ECOMMERCE = cache.get(cache_id)
+            if CACHE_ECOMMERCE is not None:
+                return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
+            else:
+                return render(request, 'core/app/dashboard/app_ecommerce.html', {})
         else:
             # Process the request as before
-            test = notify_user()
-            print(test)
-            # CACHE_ECOMMERCE = None
-            # query = request.GET.get('query', '')
-            # country = request.GET.get('country', '')
-            # city = request.GET.get('city', '')
-            # url_lead_example = request.GET.get('lead_url', '')
-            # print(url_lead_example)
-            # raw = get_company_list(query=query, location=country, city=city)  # Adjust this function as needed
-            # data = format_json_response(raw, url_lead_example, query)
-            # # data = sort_by_stars(data)
-            # CACHE_ECOMMERCE = data
+            CACHE_ECOMMERCE = {}
+            query = request.GET.get('query', '')
+            country = request.GET.get('country', '')
+            city = request.GET.get('city', '')
+            revenue = request.GET.get('revenue', '')
+            raw = get_company_list(query=query, location=country, city=city, revenue=revenue)  # Adjust this function as needed
+            data = format_json_response(raw)
+            CACHE_ECOMMERCE = {"data": data, "product": query}
+            cache.set(cache_id, CACHE_ECOMMERCE, timeout=3600)
+
             print("Load complete")
-            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE})
+            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
     else:
         # Return the full page if not an HTMX request
         return render(request, 'core/app/dashboard/app_ecommerce_full.html', {})
@@ -89,6 +108,14 @@ def app_view_gmap(request):
     else:
         # Return the full page if not an HTMX request
         return render(request, 'core/app/dashboard/app_gmap_full.html', {})
+
+
+@login_required
+def settings_view(request):
+    if request.htmx:
+        return render(request, 'core/app/settings/settings.html')
+    return render(request, 'core/app/settings/settings_full.html')
+
 
 
 @login_required
