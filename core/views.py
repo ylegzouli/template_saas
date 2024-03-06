@@ -39,7 +39,7 @@ def start_task_ecommerce(request):
     q = Queue(connection=conn)
     task_id = str(uuid.uuid4())
     # notify_user(task_id=task_id, email=request.user.email, url=url_lead, schedule=5)
-    q.enqueue(notify_user, task_id, request.user.email, url_lead)
+    q.enqueue(notify_user, task_id, request.user.email, url_lead, job_timeout=100000)
     return JsonResponse({"task_id": task_id})
 
 

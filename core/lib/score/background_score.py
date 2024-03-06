@@ -13,6 +13,8 @@ def notify_user(task_id, email, url):
     # result = []
     data['data'] = result
     cache.set(cache_id, data, timeout=3600)
-    time.sleep(10)
+    print("cache set")
+    time.sleep(5)
     cache.set(task_id, {"status" :"Complete"}, timeout=3600)
+    print("status set")
     return {"status" :"Complete"} 
