@@ -40,13 +40,14 @@ def check_task_status(request, job_id):
         return JsonResponse({"status": "pending"})
 
 def start_task_ecommerce(request):
-    global q
     print("Fuction: start_task_ecommerce()")
+    global q
+    cache_id = f"{request.user.email}_ecommerce"
+    data = cache.get(cache_id)
     url_lead = request.POST.get('lead_url', 'Default Value If Not Present')
     print(url_lead)
-    task_id = str(uuid.uuid4())
     # notify_user(task_id=task_id, email=request.user.email, url=url_lead, schedule=5)
-    job = q.enqueue(notify_user, task_id, request.user.email, url_lead, job_timeout=100000)
+    job = q.enqueue(notify_user, data, url_lead, job_timeout=100000)
     return JsonResponse({"job_id": job.id})
 
 
