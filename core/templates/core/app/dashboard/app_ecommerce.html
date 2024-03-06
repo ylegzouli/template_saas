@@ -334,13 +334,25 @@ document.getElementById('select-all').addEventListener('change', function() {
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
+
 $(document).ready(function() {
+    // Check if a task is in progress on page load
+    if (localStorage.getItem('taskInProgress') === 'true') {
+        $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').text("Processing...").prop('disabled', true);
+        // Retrieve the job ID from local storage if needed
+        var jobId = localStorage.getItem('taskJobId');
+        // Resume checking task status if jobId is available
+        if (jobId) {
+            checkTaskStatus(jobId);
+        }
+    }
+
     $('#startTaskButton').click(function(event) {
         event.preventDefault(); // Prevent the default form submission
-        
+
         var formData = $('#scoreForm').serialize(); // Serialize the form data for submission
         var csrfToken = $('[name=csrfmiddlewaretoken]').val(); // Fetch CSRF token from the form
-        
+
         $.ajax({
             url: '/start_task/', // Update with the path to your start_task view
             type: 'POST', // Assuming your server expects POST requests
@@ -350,7 +362,10 @@ $(document).ready(function() {
             },
             success: function(data) {
                 let jobId = data.job_id;
-                $('#startTaskButton').text("Processing...");
+                $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').text("Processing...").prop('disabled', true);
+                // Store task progress flag and job ID in local storage
+                localStorage.setItem('taskInProgress', 'true');
+                localStorage.setItem('taskJobId', jobId);
                 checkTaskStatus(jobId);
             },
             error: function() {
@@ -366,15 +381,25 @@ function checkTaskStatus(jobID) {
         url: `/check_task_status/${jobID}`, // Update with the path to your check_task_status view
         success: function(data) {
             if (data.status === 'pending') {
-                $('#startTaskButton').text("Processing...");
+                $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').text("Processing...").prop('disabled', true);
                 setTimeout(function() { checkTaskStatus(jobID); }, 5000); // Poll every 5 seconds
             } else {
-                $('#startTaskButton').html('Score ⭐');
+                // Clear task progress flag and job ID from local storage
+                localStorage.removeItem('taskInProgress');
+                localStorage.removeItem('taskJobId');
+                $('#startTaskButton').html('Score ⭐').prop('disabled', false);
+                $('#searchForm button[type="submit"]').text('🔎 Find leads!').prop('disabled', false);
+                $('#clearCacheButton').text('Clear 🚿').prop('disabled', false);
                 $('#reloadViewTrigger').click();
             }
         }
     });
 }
+
+
+
+
+
 </script>
 
 <style>

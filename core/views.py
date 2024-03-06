@@ -31,10 +31,8 @@ def check_task_status(request, job_id):
     job = Job.fetch(job_id, connection=conn)
     if job.is_finished == True:
         result = job.result
-        print(result)
         cache_id = f"{request.user.email}_ecommerce"
         cache.set(cache_id, result, timeout=3600)
-        # return JsonResponse({"status": "completed", "result": result})
         return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': result.get('data', {})})
     else:
         return JsonResponse({"status": "pending"})
@@ -86,8 +84,8 @@ def app_view_ecommerce(request):
             print("Load complete")
             return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
     else:
-        # Return the full page if not an HTMX request
-        return render(request, 'core/app/dashboard/app_ecommerce_full.html', {})
+        CACHE_ECOMMERCE = cache.get(cache_id)
+        return render(request, 'core/app/dashboard/app_ecommerce_full.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
 
 
 @login_required
@@ -96,7 +94,7 @@ def app_view_gmap(request):
     global CACHE_GMAP
     # Check if the request is made via HTMX
     if request.htmx:
-            # Check if the clear cache action was triggered
+        # Check if the clear cache action was triggered
         if 'clear_cache' in request.GET.keys():
             CACHE_GMAP = []
             return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP})
