@@ -349,9 +349,9 @@ $(document).ready(function() {
                 xhr.setRequestHeader('X-CSRFToken', csrfToken); // Set the CSRF token header
             },
             success: function(data) {
-                let taskId = data.task_id;
+                let jobId = data.job_id;
                 $('#startTaskButton').text("Processing...");
-                checkTaskStatus(taskId);
+                checkTaskStatus(jobId);
             },
             error: function() {
                 // Handle errors (optional)
@@ -361,16 +361,16 @@ $(document).ready(function() {
     });
 });
 
-function checkTaskStatus(taskId) {
+function checkTaskStatus(jobID) {
     $.ajax({
-        url: `/check_task_status/${taskId}`, // Update with the path to your check_task_status view
+        url: `/check_task_status/${jobID}`, // Update with the path to your check_task_status view
         success: function(data) {
-            if (data.status === 'completed') {
+            if (data.status === 'pending') {
+                $('#startTaskButton').text("Processing...");
+                setTimeout(function() { checkTaskStatus(jobID); }, 5000); // Poll every 5 seconds
+            } else {
                 $('#startTaskButton').html('Score ⭐');
                 $('#reloadViewTrigger').click();
-            } else {
-                $('#startTaskButton').text("Processing...");
-                setTimeout(function() { checkTaskStatus(taskId); }, 5000); // Poll every 5 seconds
             }
         }
     });

@@ -19,28 +19,33 @@ from core.lib.score.background_score import notify_user
 CACHE_GMAP = []
 
 from rq import Queue
+from rq.job import Job
 from worker import conn
+q = Queue(connection=conn)
 
 
-def check_task_status(request, task_id):
+# def check_task_status(request, task_id, job_id):
+def check_task_status(request, job_id):
     print("Fuction: check_task_status()")
-    result = cache.get(task_id)
-    if result:
-        print(f"task: {task_id} complete.")
-        return JsonResponse({"status": "completed", "result": result})
+    print(job_id)
+    job = Job.fetch(job_id, connection=conn)
+    if job.is_finished == True:
+        result = job.result
+        print(result)
+        # return JsonResponse({"status": "completed", "result": result})
+        return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': result.get('data', {})})
     else:
-        print(f"task: {task_id} pending.")
         return JsonResponse({"status": "pending"})
 
 def start_task_ecommerce(request):
+    global q
     print("Fuction: start_task_ecommerce()")
     url_lead = request.POST.get('lead_url', 'Default Value If Not Present')
     print(url_lead)
-    q = Queue(connection=conn)
     task_id = str(uuid.uuid4())
     # notify_user(task_id=task_id, email=request.user.email, url=url_lead, schedule=5)
-    q.enqueue(notify_user, task_id, request.user.email, url_lead, job_timeout=100000)
-    return JsonResponse({"task_id": task_id})
+    job = q.enqueue(notify_user, task_id, request.user.email, url_lead, job_timeout=100000)
+    return JsonResponse({"job_id": job.id})
 
 
 @login_required

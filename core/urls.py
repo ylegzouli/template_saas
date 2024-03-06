@@ -16,7 +16,8 @@ urlpatterns = [
 
     
     path('start_task/', views.start_task_ecommerce, name='start_task'),
-    path('check_task_status/<str:task_id>/', views.check_task_status, name='check_task_status'),
+    # path('check_task_status/<str:task_id>/', views.check_task_status, name='check_task_status'),
+    path('check_task_status/<str:job_id>/', views.check_task_status, name='check_task_status'),
     
     # path('app/settings', views.settings_view, name='settings'),
 
