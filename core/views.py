@@ -32,6 +32,8 @@ def check_task_status(request, job_id):
     if job.is_finished == True:
         result = job.result
         print(result)
+        cache_id = f"{request.user.email}_ecommerce"
+        cache.set(cache_id, result, timeout=3600)
         # return JsonResponse({"status": "completed", "result": result})
         return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': result.get('data', {})})
     else:
