@@ -18,6 +18,9 @@ from core.lib.score.background_score import notify_user
 
 CACHE_GMAP = []
 
+from rq import Queue
+from worker import conn
+
 
 def check_task_status(request, task_id):
     print("Fuction: check_task_status()")
@@ -33,8 +36,10 @@ def start_task_ecommerce(request):
     print("Fuction: start_task_ecommerce()")
     url_lead = request.POST.get('lead_url', 'Default Value If Not Present')
     print(url_lead)
+    q = Queue(connection=conn)
     task_id = str(uuid.uuid4())
-    notify_user(task_id=task_id, email=request.user.email, url=url_lead, schedule=5)
+    # notify_user(task_id=task_id, email=request.user.email, url=url_lead, schedule=5)
+    q.enqueue(notify_user, task_id, request.user.email, url_lead)
     return JsonResponse({"task_id": task_id})
 
 

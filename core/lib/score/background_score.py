@@ -4,7 +4,7 @@ from django.core.cache import cache
 from core.lib.score.openai_api import sort_by_stars
 from core.lib.api import add_score_list_data
 
-@background(schedule=5)
+# @background(schedule=5)
 def notify_user(task_id, email, url):
     print("Background function: notify_user()")
     cache_id = f"{email}_ecommerce"

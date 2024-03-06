@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-*922xdlp$2mhk@7wnfmmi(5uagj_o(w^o==!m+4b1$+0)o#$^3
 DEBUG = True
 
 ALLOWED_HOSTS = ['getkoko-08660e959dbf.herokuapp.com', '127.0.0.1']
-DEFAULT_HOST = 'getkoko-08660e959dbf.herokuapp.com' 
+# DEFAULT_HOST = 'getkoko-08660e959dbf.herokuapp.com' 
 
 
 # Application definition
@@ -35,7 +35,6 @@ DEFAULT_HOST = 'getkoko-08660e959dbf.herokuapp.com'
 
 INSTALLED_APPS = [
     'core',
-    'background_task',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -142,3 +141,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'app'
 LOGIN_URL = 'login'
+DJANGO_SETTINGS_MODULE= 'settings rq worker high default low'
+

@@ -25,4 +25,5 @@ urllib3==2.2.1
 gunicorn
 python-dotenv
 whitenoise
-django4-background-tasks
+# django4-background-tasks
+rq

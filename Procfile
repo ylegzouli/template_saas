@@ -1,5 +1,5 @@
 web: gunicorn getkoko.wsgi
-worker: python manage.py process_tasks
+worker: python worker.py 
 
 # Uncomment this `release` process if you are using a database, so that Django's model
 # migrations are run as part of app deployment, using Heroku's Release Phase feature:
