@@ -67,7 +67,7 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue)
             }
         }),
         'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
-        'page_size': 1,
+        'page_size': 20,
 
      }    
     
@@ -76,7 +76,6 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue)
     if response.status_code == 200:
         return response.json()  # Returns the JSON response with specified fields
     else:
-        print("ERROR!!!!!!!!!!!!!!!!!!!!")
         return {'error': 'Failed to retrieve data', 'status_code': response.status_code, 'domains': {}}
 
 
