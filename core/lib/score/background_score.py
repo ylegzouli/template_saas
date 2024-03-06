@@ -1,4 +1,3 @@
-from background_task import background
 import time
 from django.core.cache import cache
 from core.lib.score.openai_api import sort_by_stars
