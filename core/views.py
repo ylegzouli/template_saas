@@ -85,7 +85,11 @@ def app_view_ecommerce(request):
             return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
     else:
         CACHE_ECOMMERCE = cache.get(cache_id)
-        return render(request, 'core/app/dashboard/app_ecommerce_full.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
+        if CACHE_ECOMMERCE is not None:
+            return render(request, 'core/app/dashboard/app_ecommerce_full.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
+        else:
+            return render(request, 'core/app/dashboard/app_ecommerce_full.html')
+
 
 
 @login_required

@@ -67,7 +67,7 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue)
             }
         }),
         'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
-        'page_size': 20,
+        'page_size': 100,
 
      }    
     

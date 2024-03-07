@@ -336,66 +336,57 @@ document.getElementById('select-all').addEventListener('change', function() {
 <script>
 
 $(document).ready(function() {
-    // Check if a task is in progress on page load
-    if (localStorage.getItem('taskInProgress') === 'true') {
-        $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').text("Processing...").prop('disabled', true);
-        // Retrieve the job ID from local storage if needed
-        var jobId = localStorage.getItem('taskJobId');
-        // Resume checking task status if jobId is available
-        if (jobId) {
-            checkTaskStatus(jobId);
-        }
-    }
-
+    // Bind click event to start task button
     $('#startTaskButton').click(function(event) {
         event.preventDefault(); // Prevent the default form submission
-
-        var formData = $('#scoreForm').serialize(); // Serialize the form data for submission
-        var csrfToken = $('[name=csrfmiddlewaretoken]').val(); // Fetch CSRF token from the form
-
-        $.ajax({
-            url: '/start_task/', // Update with the path to your start_task view
-            type: 'POST', // Assuming your server expects POST requests
-            data: formData, // Send the serialized form data
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-CSRFToken', csrfToken); // Set the CSRF token header
-            },
-            success: function(data) {
-                let jobId = data.job_id;
-                $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').text("Processing...").prop('disabled', true);
-                // Store task progress flag and job ID in local storage
-                localStorage.setItem('taskInProgress', 'true');
-                localStorage.setItem('taskJobId', jobId);
-                checkTaskStatus(jobId);
-            },
-            error: function() {
-                // Handle errors (optional)
-                alert("An error occurred");
-            }
-        });
+        startTask(); // Call a function to start the task
     });
 });
 
+function startTask() {
+    var formData = $('#scoreForm').serialize(); // Serialize the form data for submission
+    var csrfToken = $('[name=csrfmiddlewaretoken]').val(); // Fetch CSRF token from the form
+
+    $.ajax({
+        url: '/start_task/', // Path to start task view
+        type: 'POST',
+        data: formData,
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader('X-CSRFToken', csrfToken);
+        },
+        success: function(data) {
+            let jobId = data.job_id;
+            // Adjust button states and store task state in local storage
+            $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').prop('disabled', true).text("Processing...");
+            localStorage.setItem('taskInProgress', 'true');
+            localStorage.setItem('taskJobId', jobId);
+            // Only start checking the task status after a job is initiated
+            checkTaskStatus(jobId); // Begin checking task status
+        },
+        error: function() {
+            alert("An error occurred");
+        }
+    });
+}
+
 function checkTaskStatus(jobID) {
     $.ajax({
-        url: `/check_task_status/${jobID}`, // Update with the path to your check_task_status view
+        url: `/check_task_status/${jobID}`, // Path to check task status view
         success: function(data) {
             if (data.status === 'pending') {
-                $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').text("Processing...").prop('disabled', true);
-                setTimeout(function() { checkTaskStatus(jobID); }, 5000); // Poll every 5 seconds
+                setTimeout(function() { checkTaskStatus(jobID); }, 5000); // Poll every 5 seconds if pending
             } else {
-                // Clear task progress flag and job ID from local storage
+                // Clear local storage and adjust button states upon completion
                 localStorage.removeItem('taskInProgress');
                 localStorage.removeItem('taskJobId');
                 $('#startTaskButton').html('Score ⭐').prop('disabled', false);
                 $('#searchForm button[type="submit"]').text('🔎 Find leads!').prop('disabled', false);
                 $('#clearCacheButton').text('Clear 🚿').prop('disabled', false);
-                $('#reloadViewTrigger').click();
+                $('#reloadViewTrigger').click(); // Trigger any post-completion action
             }
         }
     });
 }
-
 
 
 
