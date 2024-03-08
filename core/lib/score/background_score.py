@@ -8,12 +8,7 @@ def notify_user(data, url):
     print("Background function: notify_user()")
     result = add_score_list_data(data['data'], url, data['product'])
     result = sort_by_stars(result)
-    # result = []
     data['data'] = result
-    # cache.set(cache_id, data, timeout=3600)
-    # print("cache set")
-    # time.sleep(5)
-    # cache.set(task_id, {"status" :"Complete"}, timeout=3600)
-    # print("status set")
+
     return data
 

@@ -289,7 +289,7 @@ def extract_social_and_email_urls(url):
     return found_urls
 
 
-def format_json_response_scrapit(json_response, url_lead_example, product):
+def format_json_response_scrapit(json_response):
     print("Function: format_json_response_scrapit()")
     formatted_data = []
     for item in json_response:
