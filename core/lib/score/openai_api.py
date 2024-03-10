@@ -175,7 +175,7 @@ def get_similar_query(query):
             model="gpt-4",
             messages=[
                 {"role": "system", "content": f"""
-                You're role will be to give me  exact synonyms in english of the query provide by the user, give only the list separate by comma.
+                You're role will be to give me 5 exact synonyms in english of the query provide by the user, give only the list separate by comma.
                 """},
                 {"role": "user", "content": f"""
                     [QUERY]
