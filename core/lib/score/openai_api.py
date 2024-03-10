@@ -175,7 +175,7 @@ def get_similar_query(query):
             model="gpt-4",
             messages=[
                 {"role": "system", "content": f"""
-                You're role will be to give me 15 exact synonyms in english of the query provide by the user, give only the list separate by comma.
+                You're role will be to give me 10 exact synonyms in english of the query provide by the user, give only the list separate by comma.
                 """},
                 {"role": "user", "content": f"""
                     [QUERY]
@@ -278,7 +278,11 @@ def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: 
 def score_complete(insight_base: LeadInsight, url_target: str, product: str):
     print("Function: score_complete()")
     insight_target = get_lead_insight(url_target)
-    categorie = clean_categorie(insight_target.products)
+    
+            # 'email': "\n".join(social.get('email', "")),
+            # 'instagram': social.get('instagram', None),
+            # 'linkedin': social.get('linkedin', None),
+            # 'facebook': social.get('facebook', None),
 
     return score_lead(insight_base, insight_target, product), categorie, insight_target.store_type
 

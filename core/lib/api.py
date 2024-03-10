@@ -1,6 +1,6 @@
 #%%
 import requests
-from core.lib.score.openai_api import score_complete, get_lead_insight, get_similar_query
+from core.lib.score.openai_api import score_complete, get_lead_insight, get_similar_query, clean_categorie
 # from score.openai_api import score_complete, get_lead_insight, sort_by_stars, scrape_website_content
 import json
 from urllib.parse import urlparse
@@ -36,7 +36,7 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue)
     url = "https://storeleads.app/json/api/v1/all/domain"
     headers = {'Authorization': f'Bearer {STORELEAD_APIKEY}'}
     cunjunct = []
-    
+
 
     if len(location) > 0:
         cunjunct.append({"field": "cc", "operator": "or", "analyzer": "advanced", "match": location})
@@ -113,8 +113,16 @@ def add_score_list_data(list_data, url_lead_example, product):
             print(url)
             stars, categorie, store_type = score_complete(lead_base, url, product)
             data['stars'] = stars
-            data['categories'] = categorie
             data['store_type'] = store_type
+            if data['source'] == 'googlemap':
+                social = extract_social_and_email_urls(url)
+                data['email'] =  "\n".join(social.get('email', ""))
+                data['instagram'] = social.get('instagram', None)
+                data['linkedin'] = social.get('linkedin', None)
+                data['facebook'] = social.get('facebook', None),
+            elif data['source'] == 'storelead':
+                categorie = clean_categorie(product)
+                data['categories'] = categorie
             result.append(data)
         except Exception as e:
             print(e)
@@ -175,7 +183,7 @@ def format_json_response(json_response):
             'nb_employee': item.get('employee_count', ""),
             'ca': ca,
             'adress': None,
-            'source': "scorelead"
+            'source': "storelead"
         }
         formatted_data.append(formatted_item)
     # result = add_score_list_data(formatted_data, url_lead_example, product)
@@ -328,13 +336,9 @@ def format_json_response_scrapit(json_response):
             'name': name,
             'url': url,
             'categories': item.get('type', []),
-            'email': "\n".join(social.get('email', "")),
-            'instagram': social.get('instagram', None),
-            'linkedin': social.get('linkedin', None),
-            'facebook': social.get('facebook', None),
-            'phone': item.get('phone', None),
             'nb_employee': None,
             'ca': None,
+            'phone': item.get('phone', None),
             'address': item.get('address', None),
             'store_type': item.get('store_type', None),
             'source': 'googlemap'
