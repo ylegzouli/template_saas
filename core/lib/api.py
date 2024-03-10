@@ -111,7 +111,7 @@ def add_score_list_data(list_data, url_lead_example, product):
         try: 
             url = data['url']
             print(url)
-            stars, categorie, store_type = score_complete(lead_base, url, product)
+            stars, store_type = score_complete(lead_base, url, product)
             data['stars'] = stars
             data['store_type'] = store_type
             if data['source'] == 'googlemap':
@@ -186,8 +186,6 @@ def format_json_response(json_response):
             'source': "storelead"
         }
         formatted_data.append(formatted_item)
-    # result = add_score_list_data(formatted_data, url_lead_example, product)
-    # return result
     return formatted_data
 
 
@@ -206,39 +204,8 @@ def get_googlem_data(query, country: str = "", location: str = ""):
 
     response = requests.post(url, headers=headers, json=data)
 
-    # print(response.json())
     return response.json()
 
-
-def format_json_response_google(json_response, url_lead_example, product):#, url_lead_example, product):
-    print("Function: format_json_response_google()")
-    formatted_data = []
-    for item in json_response["places"]:
-        url = item.get('websiteUri', None)
-        if url is not None:
-            try:
-                name = item.get('displayName')['text']
-            except:
-                name = ""
-            formatted_item = {
-                'name': name,
-                'url': url,
-                'categories': ", ".join(item.get('types', [])),
-                'email': None,
-                'instagram': None,
-                'store_type': item.get('store_type', None),
-                'linkedin': None,
-                'facebook': None,
-                'phone': item.get('internationalPhoneNumber', None),
-                'nb_employee': None,
-                'ca': None,
-                'address': item.get('formattedAddress'),
-                'source': 'googlemap'
-            }
-            formatted_data.append(formatted_item)
-    # print(formatted_data)
-    result = add_score_list_data(formatted_data, url_lead_example, product)
-    return result
 
 #%%
 
@@ -331,7 +298,7 @@ def format_json_response_scrapit(json_response):
                 name = item.get('title')
             except:
                 name = ""
-            social = extract_social_and_email_urls(url)
+            # social = extract_social_and_email_urls(url)
             formatted_item = {
             'name': name,
             'url': url,
