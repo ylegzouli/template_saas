@@ -19,7 +19,7 @@ urlpatterns = [
     path('start_task_gmap/', views.start_task_gmap, name='start_task_gmap'),
     # path('check_task_status/<str:task_id>/', views.check_task_status, name='check_task_status'),
     path('check_task_status/<str:job_id>/', views.check_task_status, name='check_task_status'),
-    path('check_task_status_gmap/<str:job_id>/', views.check_task_status_gmap, name='check_task_status_gmap'),
+    path('check_task_status_gmap/<str:job_id>/', views.check_task_status_gmap, name='check_task_status_gmap '),
     
     # path('app/settings', views.settings_view, name='settings'),
 

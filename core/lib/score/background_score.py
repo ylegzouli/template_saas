@@ -11,4 +11,3 @@ def notify_user(data, url):
     data['data'] = result
 
     return data
-

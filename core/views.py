@@ -23,7 +23,6 @@ from worker import conn
 q = Queue(connection=conn)
 
 
-# def check_task_status(request, task_id, job_id):
 def check_task_status(request, job_id):
     print("Fuction: check_task_status()")
     print(job_id)
@@ -111,10 +110,6 @@ def app_view_ecommerce(request):
             return render(request, 'core/app/dashboard/app_ecommerce_full.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
         else:
             return render(request, 'core/app/dashboard/app_ecommerce_full.html')
-
-
-
-
 
 
 @login_required

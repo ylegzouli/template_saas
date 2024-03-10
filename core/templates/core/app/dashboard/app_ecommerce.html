@@ -146,8 +146,13 @@
                         <input type="checkbox" id="select-all" class="cursor-pointer">
                     </th>
                     <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Score</th>
-                    <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Name</th>
-                    <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Categories</th>
+                    <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">
+                        <input type="text" class="column-search focus:border-transparent focus:outline-none focus:ring-1 focus:ring-black ring-opacity-90" data-column-index="3" placeholder="Name">
+                    </th>
+                    <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">
+                        <input type="text" class="column-search focus:border-transparent focus:outline-none focus:ring-1 focus:ring-black ring-opacity-90" data-column-index="4" placeholder="Categories">
+                    </th>
+                    <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Type</th>
                     <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">LinkedIn</th>
                     <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Instagram</th>
                     <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Facebook</th>
@@ -170,6 +175,8 @@
                       </td>
                       
                     <td class="whitespace-nowrap border-l  px-4 py-2 text-gray-700">{{ project.categories }}</td>
+                    <td class="whitespace-nowrap  border-l px-4 py-2 font-medium text-gray-900">{{ project.store_type }}</td>
+                    
                     <td class="whitespace-nowrap border-l  px-4 py-2 text-gray-700">
                       {% if project.linkedin %}
                       <a href="{{ project.linkedin }}" target="_blank" class="text-blue-600 hover:underline">
@@ -283,7 +290,7 @@ document.body.addEventListener('htmx:afterRequest', function() {
 document.getElementById('exportButton').addEventListener('click', function() {
     var table = document.getElementById('loading-table');
     // Corrected the first row for column names to match your table structure
-    var data = [['Score', 'Name', 'Categories', 'LinkedIn', 'Instagram', 'Facebook', 'Email', 'Phones', 'CA', 'Nb Employee']];
+    var data = [['Score', 'Name', 'Categories', 'Type', 'LinkedIn', 'Instagram', 'Facebook', 'Email', 'Phones', 'CA', 'Nb Employee']];
 
     // Get all rows in the table body
     var rows = table.querySelectorAll('tbody tr');
@@ -297,16 +304,17 @@ document.getElementById('exportButton').addEventListener('click', function() {
             var score = row.cells[1].innerText.trim();
             var name = row.cells[2].querySelector('a') ? row.cells[2].querySelector('a').innerText.trim() : ''; // Name
             var categories = row.cells[3].innerText.trim();
-            var linkedInUrl = row.cells[4].querySelector('a') ? row.cells[4].querySelector('a').href.trim() : '';
-            var instagramUrl = row.cells[5].querySelector('a') ? row.cells[5].querySelector('a').href.trim() : '';
-            var facebookUrl = row.cells[6].querySelector('a') ? row.cells[6].querySelector('a').href.trim() : '';
-            var email = row.cells[7].innerText.trim().replace(/\s+/g, ', '); // Assuming emails are separated by whitespace/new lines
-            var phone = row.cells[8].innerText.trim().replace(/\s+/g, ', '); // Assuming phones are separated by whitespace/new lines
-            var ca = row.cells[9].innerText.trim();
-            var nb_employee = row.cells[10].innerText.trim();
+            var types = row.cells[4].innerText.trim();
+            var linkedInUrl = row.cells[5].querySelector('a') ? row.cells[5].querySelector('a').href.trim() : '';
+            var instagramUrl = row.cells[6].querySelector('a') ? row.cells[6].querySelector('a').href.trim() : '';
+            var facebookUrl = row.cells[7].querySelector('a') ? row.cells[7].querySelector('a').href.trim() : '';
+            var email = row.cells[8].innerText.trim().replace(/\s+/g, ', '); // Assuming emails are separated by whitespace/new lines
+            var phone = row.cells[9].innerText.trim().replace(/\s+/g, ', '); // Assuming phones are separated by whitespace/new lines
+            var ca = row.cells[10].innerText.trim();
+            var nb_employee = row.cells[11].innerText.trim();
 
             // Add this row's data to the export array
-            data.push([score, name, categories, linkedInUrl, instagramUrl, facebookUrl, email, phone, ca, nb_employee]);
+            data.push([score, name, categories, types, linkedInUrl, instagramUrl, facebookUrl, email, phone, ca, nb_employee]);
         }
     });
 
@@ -336,62 +344,112 @@ document.getElementById('select-all').addEventListener('change', function() {
 <script>
 
 $(document).ready(function() {
-    // Bind click event to start task button
+    if (localStorage.getItem('taskInProgress') === 'true') {
+        var jobId = localStorage.getItem('jobId'); // Assume you store jobId when starting the task
+        if (jobId) {
+            lockButtons();
+            checkTaskStatus(jobId);
+        } else {
+            // If there's no job ID, it means there's no valid task running
+            localStorage.removeItem('taskInProgress');
+            unlockButtons();
+        }
+    }
+
     $('#startTaskButton').click(function(event) {
-        event.preventDefault(); // Prevent the default form submission
-        startTask(); // Call a function to start the task
+        event.preventDefault();
+        startTask();
     });
 });
 
 function startTask() {
-    var formData = $('#scoreForm').serialize(); // Serialize the form data for submission
-    var csrfToken = $('[name=csrfmiddlewaretoken]').val(); // Fetch CSRF token from the form
-
+    // Simulate starting a task on the server
     $.ajax({
-        url: '/start_task/', // Path to start task view
+        url: '/start_task/', // Adjust URL to your task starting endpoint
         type: 'POST',
-        data: formData,
-        beforeSend: function(xhr) {
-            xhr.setRequestHeader('X-CSRFToken', csrfToken);
-        },
-        success: function(data) {
-            let jobId = data.job_id;
-            // Adjust button states and store task state in local storage
-            $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').prop('disabled', true).text("Processing...");
-            localStorage.setItem('taskInProgress', 'true');
-            localStorage.setItem('taskJobId', jobId);
-            // Only start checking the task status after a job is initiated
-            checkTaskStatus(jobId); // Begin checking task status
+        data: $('#scoreForm').serialize(),
+        success: function(response) {
+            if (response.job_id) {
+                localStorage.setItem('taskInProgress', 'true');
+                localStorage.setItem('jobId', response.job_id); // Store the job ID for status checks
+                lockButtons();
+                checkTaskStatus(response.job_id);
+            } else {
+                alert("Failed to start task. Please try again.");
+            }
         },
         error: function() {
-            alert("An error occurred");
+            alert("An error occurred. Please try again.");
+            unlockButtons();
         }
     });
 }
 
-function checkTaskStatus(jobID) {
+function checkTaskStatus(jobId) {
     $.ajax({
-        url: `/check_task_status/${jobID}`, // Path to check task status view
-        success: function(data) {
-            if (data.status === 'pending') {
-                setTimeout(function() { checkTaskStatus(jobID); }, 5000); // Poll every 5 seconds if pending
+        url: `/check_task_status/${jobId}`, // Adjust URL to your task status checking endpoint
+        success: function(response) {
+            if (response.status === 'pending') {
+                // If the task is not yet completed, keep polling
+                setTimeout(function() { checkTaskStatus(jobId); }, 5000); // Poll every 5 seconds
             } else {
-                // Clear local storage and adjust button states upon completion
-                localStorage.removeItem('taskInProgress');
-                localStorage.removeItem('taskJobId');
-                $('#startTaskButton').html('Score ⭐').prop('disabled', false);
-                $('#searchForm button[type="submit"]').text('🔎 Find leads!').prop('disabled', false);
-                $('#clearCacheButton').text('Clear 🚿').prop('disabled', false);
-                $('#reloadViewTrigger').click(); // Trigger any post-completion action
+                finishTask();
             }
+        },
+        error: function() {
+            alert("Failed to check task status. Will try again.");
+            setTimeout(function() { checkTaskStatus(jobId); }, 5000); // Retry after a delay
         }
     });
 }
 
+function finishTask() {
+    localStorage.removeItem('taskInProgress');
+    localStorage.removeItem('jobId'); // Clear the stored job ID
+    unlockButtons();
+    $('#reloadViewTrigger').click();
+}
 
+function lockButtons() {
+    $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').prop('disabled', true).text("Processing...");
+}
+
+function unlockButtons() {
+    $('#startTaskButton').html('Score ⭐').prop('disabled', false);
+    $('#searchForm button[type="submit"]').text('🔎 Find leads!').prop('disabled', false);
+    $('#clearCacheButton').text('Clear 🚿').prop('disabled', false);
+}
 
 
 </script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Attach a keyup event listener to each search input
+        document.querySelectorAll('.column-search').forEach(function(input) {
+            input.addEventListener('keyup', function() {
+                var columnIndex = this.getAttribute('data-column-index');
+                var filter = this.value.toUpperCase();
+                var table = document.getElementById('loading-table');
+                var rows = table.getElementsByTagName('tr');
+    
+                // Loop through all rows of the table, starting from the first data row
+                for (var i = 2; i < rows.length; i++) { // Assuming first 2 rows are header rows
+                    var cell = rows[i].getElementsByTagName('td')[columnIndex-1]; // Adjust index for zero-based array
+                    if (cell) {
+                        var cellText = cell.textContent || cell.innerText;
+                        if (cellText.toUpperCase().indexOf(filter) > -1) {
+                            rows[i].style.display = "";
+                        } else {
+                            rows[i].style.display = "none";
+                        }
+                    }
+                }
+            });
+        });
+    });
+    </script>
 
 <style>
 

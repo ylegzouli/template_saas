@@ -1,6 +1,6 @@
 #%%
 import requests
-from core.lib.score.openai_api import score_complete, get_lead_insight
+from core.lib.score.openai_api import score_complete, get_lead_insight, get_similar_query
 # from score.openai_api import score_complete, get_lead_insight, sort_by_stars, scrape_website_content
 import json
 from urllib.parse import urlparse
@@ -36,6 +36,7 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue)
     url = "https://storeleads.app/json/api/v1/all/domain"
     headers = {'Authorization': f'Bearer {STORELEAD_APIKEY}'}
     cunjunct = []
+    
 
     if len(location) > 0:
         cunjunct.append({"field": "cc", "operator": "or", "analyzer": "advanced", "match": location})
@@ -67,7 +68,7 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue)
             }
         }),
         'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
-        'page_size': 100,
+        'page_size': 150,
 
      }    
     
@@ -110,9 +111,10 @@ def add_score_list_data(list_data, url_lead_example, product):
         try: 
             url = data['url']
             print(url)
-            stars, categorie = score_complete(lead_base, url, product)
+            stars, categorie, store_type = score_complete(lead_base, url, product)
             data['stars'] = stars
             data['categories'] = categorie
+            data['store_type'] = store_type
             result.append(data)
         except Exception as e:
             print(e)
@@ -216,6 +218,7 @@ def format_json_response_google(json_response, url_lead_example, product):#, url
                 'categories': ", ".join(item.get('types', [])),
                 'email': None,
                 'instagram': None,
+                'store_type': item.get('store_type', None),
                 'linkedin': None,
                 'facebook': None,
                 'phone': item.get('internationalPhoneNumber', None),
@@ -245,19 +248,39 @@ def get_data_scrapit(query, country, city, page=0):
     response = requests.get(url, headers=headers)
 
     data = response.json()
-    print(data)
+    # print(data)
 
-    return data['localResults']
+    return data
 
+def remove_duplicates_by_title(elements):
+    unique_elements = []
+    titles = set()
+    for element in elements:
+        if element['title'] not in titles:
+            unique_elements.append(element)
+            titles.add(element['title'])
+    return unique_elements
 
 
 def get_data_scrapit_mpages(query, country, city):
     print("Function: get_data_scrapit_mpages()")
-    data_p1 = get_data_scrapit(query, country, city, 0)
+    query_list = get_similar_query(query)
+    queries = [query]
+    queries.extend(query_list.split(", "))
+    print(queries)
+    data = []
+    for q in queries:
+        data_p1 = get_data_scrapit(q, country, city, 0)
+        data.extend(data_p1.get('localResults', []))
+    data = remove_duplicates_by_title(data)
+    # print(data[0])
     # data_p2 = get_data_scrapit(query, country, city, 20)
     # data_p3 = get_data_scrapit(query, country, city, 40)
-    # return data_p1 + data_p2 + data_p3
-    return data_p1
+    # data = data_p1.get('localResults', []) + data_p2.get('localResults', []) + data_p3.get('localResults', []) 
+    print(len(data))
+    return data
+    # return data_p1
+
 
 def extract_social_and_email_urls(url):
     print("Function: extract_social_and_email_urls()")
@@ -313,6 +336,7 @@ def format_json_response_scrapit(json_response):
             'nb_employee': None,
             'ca': None,
             'address': item.get('address', None),
+            'store_type': item.get('store_type', None),
             'source': 'googlemap'
             }
             formatted_data.append(formatted_item)

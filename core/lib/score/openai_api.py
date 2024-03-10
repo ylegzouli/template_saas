@@ -31,7 +31,7 @@ def scrape_website_content(url):
     print("Function: scrape_website_content()")
     try:
         # Send a GET request to the URL
-        response = requests.get(url, timeout=30)
+        response = requests.get(url, timeout=10)
         # Raise an exception if the request was unsuccessful
         response.raise_for_status()
         
@@ -122,6 +122,26 @@ def custom_filter(website_content, product):
     except Exception as e:
         print(e)
         return ""
+    
+def store_type_function(website_content):
+    print("Function: store_type()")
+    try:
+        # content = scrape_website_content(url)
+        result = client.chat.completions.create(
+            timeout=50,
+            model="gpt-3.5-turbo",
+            messages=[
+                #  {"role": "system", "content": "Based on the website content provided by the user, your job is to analyze and identify the target audience. Return all the target audience separate by comma. Provide your answer in English."},
+                {"role": "system", "content": f"""
+                 User will give you some website content. you're job is answer by BRAND or RETAILER to the question: is this a brand website or a retailer website ? Only answer by BRAND or RETAILER or OTHER.
+                 """},
+                {"role": "user", "content": website_content}
+            ]
+        )
+        return result.choices[0].message.content
+    except Exception as e:
+        print(e)
+        return ""
 
 def eval_product(product_1, product_2):
     print("Function: eval_product()")
@@ -139,6 +159,27 @@ def eval_product(product_1, product_2):
                     {product_1}
                     [PRODUCT 2]
                     {product_2}
+                 """}
+            ]
+        )
+        return result.choices[0].message.content
+    except Exception as e:
+        print(e)
+        return ""
+
+def get_similar_query(query):
+    print("Function: get_similar_query()")
+    try:
+        result = client.chat.completions.create(
+            timeout=50,
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": f"""
+                You're role will be to give me 15 exact synonyms in english of the query provide by the user, give only the list separate by comma.
+                """},
+                {"role": "user", "content": f"""
+                    [QUERY]
+                    {query}
                  """}
             ]
         )
@@ -189,11 +230,13 @@ class LeadInsight():
     website_content: str
     products: str
     audiences: str
+    store_type: str
 
-    def __init__(self, website_content: str, products: str, audiences: str):
+    def __init__(self, website_content: str, products: str, audiences: str, store_type: str):
         self.website_content = website_content
         self.products = products
         self.audiences = audiences
+        self.store_type = store_type
 
 
 def get_lead_insight(url):
@@ -201,10 +244,12 @@ def get_lead_insight(url):
     content = scrape_website_content(url)
     products = get_product_description(content)
     audiences = get_usertarget_description(content)
+    store_type = store_type_function(content)
     return LeadInsight(
         website_content=content,
         products=products,
         audiences=audiences,
+        store_type=store_type,
     )
 
 def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: str):
@@ -224,6 +269,8 @@ def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: 
         score += 2
     if score_custom.lower().find("yes") == 0:
         score += 1
+    if insight_base.store_type.lower().find(insight_target.store_type.lower()) == 0:
+        score += 1
 
     print("⭐" * (score + 1))
     return "⭐" * (score + 1)
@@ -233,6 +280,6 @@ def score_complete(insight_base: LeadInsight, url_target: str, product: str):
     insight_target = get_lead_insight(url_target)
     categorie = clean_categorie(insight_target.products)
 
-    return score_lead(insight_base, insight_target, product), categorie
+    return score_lead(insight_base, insight_target, product), categorie, insight_target.store_type
 
 # %%
