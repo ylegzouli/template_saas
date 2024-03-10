@@ -111,7 +111,7 @@ def add_score_list_data(list_data, url_lead_example, product):
         try: 
             url = data['url']
             print(url)
-            stars, store_type = score_complete(lead_base, url, product)
+            stars, categorie, store_type = score_complete(lead_base, url, product)
             data['stars'] = stars
             data['store_type'] = store_type
             if data['source'] == 'googlemap':
@@ -120,9 +120,9 @@ def add_score_list_data(list_data, url_lead_example, product):
                 data['instagram'] = social.get('instagram', None)
                 data['linkedin'] = social.get('linkedin', None)
                 data['facebook'] = social.get('facebook', None),
-            elif data['source'] == 'storelead':
-                categorie = clean_categorie(product)
+            if data['source'] == 'googlemap':
                 data['categories'] = categorie
+
             result.append(data)
         except Exception as e:
             print(e)
