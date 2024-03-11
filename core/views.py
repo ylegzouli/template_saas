@@ -97,7 +97,8 @@ def app_view_ecommerce(request):
             country = request.GET.get('country', '')
             city = request.GET.get('city', '')
             revenue = request.GET.get('revenue', '')
-            raw = get_company_list(query=query, location=country, city=city, revenue=revenue)  # Adjust this function as needed
+            nb_results = int(request.GET.get('results', '10'))
+            raw = get_company_list(query=query, location=country, city=city, revenue=revenue, nb_results=nb_results)  # Adjust this function as needed
             data = format_json_response(raw)
             CACHE_ECOMMERCE = {"data": data, "product": query}
             cache.set(cache_id, CACHE_ECOMMERCE, timeout=3600)
@@ -138,7 +139,7 @@ def app_view_gmap(request):
             query = request.GET.get('query', '')
             country = request.GET.get('country', '')
             city = request.GET.get('city', '')
-            raw_google = get_data_scrapit_mpages(query=query, country=country, city=city)
+            raw_google = get_data_scrapit_mpages(query=query.strip(), country=country.strip(), city=city.strip())
             data = format_json_response_scrapit(raw_google)
             CACHE_GMAP = {"data": data, "product": query}
             cache.set(cache_id, CACHE_GMAP, timeout=3600)

@@ -110,7 +110,17 @@
                     <option value="10M-50M">10M-50M</option>
                     <option value="+50M">+50M</option>
                 </select>
-                
+               
+                <select name="results"
+                class="ml-2 block w-40 py-1.5 pl-2 pr-4 leading-normal rounded-md focus:border-transparent focus:outline-none focus:ring-1 focus:ring-black ring-opacity-90 bg-gray-100 dark:bg-gray-800 text-gray-400"
+                aria-label="Nb results">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="1000">1000</option>
+                </select>
 
 
                     <button type="submit"
@@ -290,7 +300,7 @@ document.body.addEventListener('htmx:afterRequest', function() {
 document.getElementById('exportButton').addEventListener('click', function() {
     var table = document.getElementById('loading-table');
     // Corrected the first row for column names to match your table structure
-    var data = [['Score', 'Name', 'Categories', 'Type', 'LinkedIn', 'Instagram', 'Facebook', 'Email', 'Phones', 'CA', 'Nb Employee']];
+    var data = [['Score', 'Name', 'Link','Categories', 'Type', 'LinkedIn', 'Instagram', 'Facebook', 'Email', 'Phones', 'CA', 'Nb Employee']];
 
     // Get all rows in the table body
     var rows = table.querySelectorAll('tbody tr');
@@ -303,6 +313,7 @@ document.getElementById('exportButton').addEventListener('click', function() {
             // Adjusted according to the correct order and method of getting data
             var score = row.cells[1].innerText.trim();
             var name = row.cells[2].querySelector('a') ? row.cells[2].querySelector('a').innerText.trim() : ''; // Name
+            var link = row.cells[2].querySelector('a') ? row.cells[2].querySelector('a').href.trim() : '';
             var categories = row.cells[3].innerText.trim();
             var types = row.cells[4].innerText.trim();
             var linkedInUrl = row.cells[5].querySelector('a') ? row.cells[5].querySelector('a').href.trim() : '';
@@ -314,7 +325,7 @@ document.getElementById('exportButton').addEventListener('click', function() {
             var nb_employee = row.cells[11].innerText.trim();
 
             // Add this row's data to the export array
-            data.push([score, name, categories, types, linkedInUrl, instagramUrl, facebookUrl, email, phone, ca, nb_employee]);
+            data.push([score, name, link, categories, types, linkedInUrl, instagramUrl, facebookUrl, email, phone, ca, nb_employee]);
         }
     });
 

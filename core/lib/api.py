@@ -18,6 +18,7 @@ location = 'fr'
 city="Paris"
 url_lead_example='https://eclatparis.com/'
 revenue=None
+nb_results = 10
 
 def calculate_revenue(revenue):
     if revenue == "0-50k":
@@ -31,17 +32,16 @@ def calculate_revenue(revenue):
     elif revenue == "+50M":
         return 5000000000, None
 
-def get_company_list(query=query, location=location, city=city, revenue=revenue):
+def get_company_list(query=query, location=location, city=city, revenue=revenue, nb_results=nb_results):
     print("Function: get_company_list()")
     url = "https://storeleads.app/json/api/v1/all/domain"
     headers = {'Authorization': f'Bearer {STORELEAD_APIKEY}'}
     cunjunct = []
 
-    # query_str = get_similar_query(query)
-    # print(query_str)
-    # print(query_str.split(", ").append(query))
-    # query = " ".join([query].extend(query_str.split(", ")))
-    # print(query)
+    query_str = get_similar_query(query)
+    query_list = query_str.split(", ")
+    query_list.append(query)
+    query = " ".join(query_list)
     if len(location) > 0:
         cunjunct.append({"field": "cc", "operator": "or", "analyzer": "advanced", "match": location})
     if len(city) > 0:
@@ -72,7 +72,7 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue)
             }
         }),
         'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
-        'page_size': 150,
+        'page_size': nb_results,
 
      }    
     
