@@ -37,7 +37,11 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue)
     headers = {'Authorization': f'Bearer {STORELEAD_APIKEY}'}
     cunjunct = []
 
-
+    # query_str = get_similar_query(query)
+    # print(query_str)
+    # print(query_str.split(", ").append(query))
+    # query = " ".join([query].extend(query_str.split(", ")))
+    # print(query)
     if len(location) > 0:
         cunjunct.append({"field": "cc", "operator": "or", "analyzer": "advanced", "match": location})
     if len(city) > 0:
@@ -120,7 +124,7 @@ def add_score_list_data(list_data, url_lead_example, product):
                 data['instagram'] = social.get('instagram', None)
                 data['linkedin'] = social.get('linkedin', None)
                 data['facebook'] = social.get('facebook', None),
-            if data['source'] == 'googlemap':
+            if data['source'] == 'storelead':
                 data['categories'] = categorie
 
             result.append(data)
