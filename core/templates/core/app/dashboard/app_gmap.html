@@ -242,15 +242,6 @@
 
     {% endif %}
 
-    <div role="button"
-        id="reloadViewTrigger" 
-        hx-get="/app/gmap"
-        hx-params="hx_menu_request" 
-        hx-push-url="true" 
-        hx-target="#content-div" 
-        hx-swap="innerHTML"
-        hx-indicator="#content-div"
-        style="display:none;"></div>
 
 {% endblock content %}
 
@@ -296,7 +287,6 @@ document.getElementById('exportButton').addEventListener('click', function() {
             var email = row.cells[10].innerText.trim(); // Assuming emails are separated by whitespace/new lines
 
             // Add this row's data to the export array
-            // data.push([score, name, link ,categories, address, types, phone, linkedInUrl, instagramUrl, facebookUrl, email]);
             data.push([score, name, link ,categories, address, types, phone, linkedInUrl, instagramUrl, facebookUrl, email]);
         }
     });
@@ -355,7 +345,7 @@ function startTask() {
                 localStorage.setItem('taskInProgress', 'true');
                 localStorage.setItem('jobId', response.job_id); // Store the job ID for status checks
                 lockButtons();
-                // alert("Starting processing score, it may take a few minutes...");
+                window.location.reload(true);
                 checkTaskStatus(response.job_id);
             } else {
                 alert("Failed to start task. Please try again.");
@@ -387,21 +377,27 @@ function checkTaskStatus(jobId) {
     });
 }
 
+document.body.addEventListener('finishTaskEvent', function() {
+    finishTask();
+});
+
 function finishTask() {
     localStorage.removeItem('taskInProgress');
     localStorage.removeItem('jobId'); // Clear the stored job ID
     unlockButtons();
-    $('#reloadViewTrigger').click();
+    window.location.reload(true);
+    // $('#reloadViewTrigger').click();
 }
 
 function lockButtons() {
-    $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').prop('disabled', true).text("Processing...");
+    // $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').prop('disabled', true).text("Processing...");
+    $('#startTaskButton').html('Score ⭐').prop('disabled', true).text("Processing...");
 }
 
 function unlockButtons() {
     $('#startTaskButton').html('Score ⭐').prop('disabled', false);
-    $('#searchForm button[type="submit"]').text('🔎 Find leads!').prop('disabled', false);
-    $('#clearCacheButton').text('Clear 🚿').prop('disabled', false);
+    // $('#searchForm button[type="submit"]').text('🔎 Find leads!').prop('disabled', false);
+    // $('#clearCacheButton').text('Clear 🚿').prop('disabled', false);
 }
 
 

@@ -114,6 +114,7 @@
                 <select name="results"
                 class="ml-2 block w-40 py-1.5 pl-2 pr-4 leading-normal rounded-md focus:border-transparent focus:outline-none focus:ring-1 focus:ring-black ring-opacity-90 bg-gray-100 dark:bg-gray-800 text-gray-400"
                 aria-label="Nb results">
+                <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
@@ -267,19 +268,8 @@
         
 
     {% endif %}
-    <!-- <button id="startTaskButton">Start Task</button>
-    <div id="taskStatus">Task status will appear here.</div>    
-    </div> -->
-<!-- </div> -->
-    <div role="button"
-        id="reloadViewTrigger" 
-        hx-get="/app/e-commerce"
-        hx-params="hx_menu_request" 
-        hx-push-url="true" 
-        hx-target="#content-div" 
-        hx-swap="innerHTML"
-        hx-indicator="#content-div"
-        style="display:none;"></div>
+
+
 {% endblock content %}
 
 
@@ -359,21 +349,21 @@ $(document).ready(function() {
         var jobId = localStorage.getItem('jobId'); // Assume you store jobId when starting the task
         if (jobId) {
             lockButtons();
-            checkTaskStatus(jobId);
+            checkTaskStatus_ecom(jobId);
         } else {
             // If there's no job ID, it means there's no valid task running
             localStorage.removeItem('taskInProgress');
             unlockButtons();
         }
-    }
+5    }
 
     $('#startTaskButton').click(function(event) {
         event.preventDefault();
-        startTask();
+        startTask_ecom();
     });
 });
 
-function startTask() {
+function startTask_ecom() {
     // Simulate starting a task on the server
     $.ajax({
         url: '/start_task/', // Adjust URL to your task starting endpoint
@@ -384,7 +374,8 @@ function startTask() {
                 localStorage.setItem('taskInProgress', 'true');
                 localStorage.setItem('jobId', response.job_id); // Store the job ID for status checks
                 lockButtons();
-                checkTaskStatus(response.job_id);
+                window.location.reload(true);
+                checkTaskStatus_ecom(response.job_id);
             } else {
                 alert("Failed to start task. Please try again.");
             }
@@ -396,39 +387,45 @@ function startTask() {
     });
 }
 
-function checkTaskStatus(jobId) {
+function checkTaskStatus_ecom(jobId) {
     $.ajax({
         url: `/check_task_status/${jobId}`, // Adjust URL to your task status checking endpoint
         success: function(response) {
             if (response.status === 'pending') {
                 // If the task is not yet completed, keep polling
-                setTimeout(function() { checkTaskStatus(jobId); }, 5000); // Poll every 5 seconds
+                setTimeout(function() { checkTaskStatus_ecom(jobId); }, 5000); // Poll every 5 seconds
             } else {
                 finishTask();
             }
         },
         error: function() {
             alert("Failed to check task status. Will try again.");
-            setTimeout(function() { checkTaskStatus(jobId); }, 5000); // Retry after a delay
+            setTimeout(function() { checkTaskStatus_ecom(jobId); }, 5000); // Retry after a delay
         }
     });
 }
+
+document.body.addEventListener('finishTaskEvent', function() {
+    finishTask();
+});
 
 function finishTask() {
     localStorage.removeItem('taskInProgress');
     localStorage.removeItem('jobId'); // Clear the stored job ID
     unlockButtons();
-    $('#reloadViewTrigger').click();
+    window.location.reload(true);
+    // $('#reloadViewTrigger').click();
 }
 
 function lockButtons() {
-    $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').prop('disabled', true).text("Processing...");
+    // $('#startTaskButton, #searchForm button[type="submit"], #clearCacheButton').prop('disabled', true).text("Processing...");
+    $('#startTaskButton').html('Score ⭐').prop('disabled', true).text("Processing...");
 }
 
 function unlockButtons() {
     $('#startTaskButton').html('Score ⭐').prop('disabled', false);
-    $('#searchForm button[type="submit"]').text('🔎 Find leads!').prop('disabled', false);
-    $('#clearCacheButton').text('Clear 🚿').prop('disabled', false);
+    // $('#searchForm button[type="submit"]').text('🔎 Find leads!').prop('disabled', false);
+    // $('#clearCacheButton').text('Clear 🚿').prop('disabled', false);
 }
 
 

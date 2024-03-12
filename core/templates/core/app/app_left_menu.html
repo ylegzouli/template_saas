@@ -45,6 +45,78 @@
     </ul>
   </div>
 
+  <!-- <ul class="mt-2 space-y-1 border-t p-3">
+    {% for score in score_list %}
+      <li class="flex justify-between items-center text-sm font-sm text-gray-700">
+        <a href="#" 
+           hx-get="{% url 'end_task' score.job_id %}" 
+           hx-confirm="Are you sure you want to delete this score ?" 
+           hx-target="this" 
+           hx-swap="outerHTML"
+           class="p-1 text-red-500 hover:text-red-700">
+          ❌
+        </a>
+        <a href="#" 
+           hx-get="{% url 'load_score' score.job_id %}"
+           hx-target="#content-div" 
+           hx-swap="innerHTML"
+           class="text-gray-700 hover:text-blue-500 ">
+          <span>{{ score.source }} {{ score.id }} {{ score.status }}</span>
+        </a>
+      </li>
+    {% empty %}
+      <li class="px-4 py-2 text-sm text-gray-500">No scores available</li>
+    {% endfor %}
+  </ul> -->
+
+  <div class="overflow-x-auto m-2 rounded-lg bg-blue-50">
+    <table class="min-w-full divide-y-2 divide-white bg-blue-50 text-sm">
+      <thead class="ltr:text-left rtl:text-right">
+        <tr>
+          <th class="whitespace-nowrap px-4 py-2 font-medium font-bold text-gray-900"></th>
+          <th class="whitespace-nowrap px-4 py-2 font-medium font-bold text-gray-900">Source</th>
+          <th class="whitespace-nowrap px-4 py-2 font-medium font-bold text-gray-900">Date</th>
+          <th class="whitespace-nowrap px-4 py-2 font-medium font-bold text-gray-900">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white">
+        {% for score in score_list %}
+        <tr class="odd:bg-gray-50">
+          <td class="whitespace-nowrap px-4 py-2 text-gray-700 flex justify-between items-center">
+            <a href="#" 
+               hx-get="{% url 'end_task' score.job_id %}" 
+               hx-confirm="Are you sure you want to delete this score ?" 
+               hx-target="this" 
+               hx-swap="outerHTML" 
+               class="text-red-500 hover:text-red-700">
+              ❌
+            </a>
+          </td>
+          <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+          <a href="#" 
+             hx-get="{% url 'load_score' score.job_id %}" 
+             hx-target="#content-div" 
+             hx-swap="innerHTML" 
+             class="text-gray-700 hover:text-blue-500 mr-2">
+            {{ score.source }}
+          </a>
+          </td>
+          <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ score.id }}</td>
+          <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ score.status }}</td>
+          
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="whitespace-nowrap px-4 py-2 text-sm text-gray-500 text-center border-l">No scores available</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  
+  
+
   <div id="user-section" class="sticky bottom-8 inset-x-0 border-t border-gray-100 bg-white mt-2">
     <a href="/logout" class="flex items-center gap-2 p-4 hover:bg-gray-50">
       <img
@@ -109,6 +181,12 @@
   
       // Attach click event listeners to all buttons for immediate style update
       updateButtonStylesOnClick();
+  });
+  </script>
+
+<script>
+  document.body.addEventListener('refreshPage', function() {
+      window.location.reload(true);  // Force reload the current page
   });
   </script>
   

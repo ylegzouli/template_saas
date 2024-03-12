@@ -8,12 +8,13 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from django.core.cache import cache
+from django.http import HttpResponse
+from django.shortcuts import redirect
 import uuid
 import time
 
 
-from core.lib.api import get_company_list, format_json_response, get_data_scrapit_mpages, format_json_response_scrapit
-from core.lib.score.openai_api import sort_by_stars
+from core.lib.api import get_company_list, format_json_response, get_data_scrapit_mpages, format_json_response_scrapit, get_current_time, update_job_status, stop_job, update_job_data
 from core.lib.score.background_score import notify_user
 
 
@@ -22,29 +23,62 @@ from rq.job import Job
 from worker import conn
 q = Queue(connection=conn)
 
+def end_task(request, job_id):
+    print("View: end_task()")
+
+    cache_id = f"{request.user.email}_scorelist"
+    stop_job(cache_id=cache_id, job_id=job_id)
+    print(job_id)
+
+    response = HttpResponse('Task Ended', status=204)  # No Content, or choose an appropriate status
+    response['HX-Trigger'] = 'finishTaskEvent'  # Custom event name
+    return response
+
+
+def load_score(request, job_id):
+    print("View: load_score()")
+    score_id = f"{request.user.email}_scorelist"
+    job_list = cache.get(score_id)
+    for job in job_list:
+        if job['job_id'] == job_id:
+            if job['source'] == 'ecom':
+                return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': job['data']['data'], "score_list": job_list})
+            if job['source'] == 'gmap':
+                return render(request, 'core/app/dashboard/app_gmap.html', {'projects': job['data']['data'], "score_list": job_list})
+
 
 def check_task_status(request, job_id):
-    print("Fuction: check_task_status()")
+    print("View: check_task_status()")
     print(job_id)
     job = Job.fetch(job_id, connection=conn)
     if job.is_finished == True:
         result = job.result
-        cache_id = f"{request.user.email}_ecommerce"
-        cache.set(cache_id, result, timeout=3600)
-        return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': result.get('data', {})})
+        score_list_id = f"{request.user.email}_scorelist"
+        update_job_status(score_list_id, job.id, "Ok")
+        update_job_data(score_list_id, job.id, result)
+        return JsonResponse({"status": "complete"})
     else:
         return JsonResponse({"status": "pending"})
 
 
 def check_task_status_gmap(request, job_id):
-    print("Fuction: check_task_status()")
+    print("View: check_task_status()")
     print(job_id)
+    # job = Job.fetch(job_id, connection=conn)
+    # if job.is_finished == True:
+    #     result = job.result
+    #     cache_id = f"{request.user.email}_gmap"
+    #     cache.set(cache_id, result, timeout=3600)
+    #     return render(request, 'core/app/dashboard/app_gmap.html', {'projects': result.get('data', {})})
+    # else:
+    #     return JsonResponse({"status": "pending"})
     job = Job.fetch(job_id, connection=conn)
     if job.is_finished == True:
         result = job.result
-        cache_id = f"{request.user.email}_gmap"
-        cache.set(cache_id, result, timeout=3600)
-        return render(request, 'core/app/dashboard/app_gmap.html', {'projects': result.get('data', {})})
+        score_list_id = f"{request.user.email}_scorelist"
+        update_job_status(score_list_id, job.id, "Ok")
+        update_job_data(score_list_id, job.id, result)
+        return JsonResponse({"status": "complete"})
     else:
         return JsonResponse({"status": "pending"})
 
@@ -52,21 +86,42 @@ def check_task_status_gmap(request, job_id):
 def start_task_ecommerce(request):
     print("Fuction: start_task_ecommerce()")
     global q
+    
     cache_id = f"{request.user.email}_ecommerce"
     data = cache.get(cache_id)
     url_lead = request.POST.get('lead_url', 'Default Value If Not Present')
-    print(url_lead)
     job = q.enqueue(notify_user, data, url_lead, job_timeout=100000)
+    
+    task_idx = get_current_time()
+    score_list = cache.get(f"{request.user.email}_scorelist", [])
+    score_list.append({"id": task_idx, "status": "pending", "job_id": job.id, "data": {}, "source": "ecom"})
+    cache.set(f"{request.user.email}_scorelist", score_list,timeout=604800)
+    print(url_lead)
     return JsonResponse({"job_id": job.id})
+
 
 def start_task_gmap(request):
     print("Fuction: start_task_gmap()")
+    # global q
+    # cache_id = f"{request.user.email}_gmap"
+    # data = cache.get(cache_id)
+    # url_lead = request.POST.get('lead_url', 'Default Value If Not Present')
+    # print(url_lead)
+    # job = q.enqueue(notify_user, data, url_lead, job_timeout=100000)
+    # return JsonResponse({"job_id": job.id})
+
     global q
+    
     cache_id = f"{request.user.email}_gmap"
     data = cache.get(cache_id)
     url_lead = request.POST.get('lead_url', 'Default Value If Not Present')
-    print(url_lead)
     job = q.enqueue(notify_user, data, url_lead, job_timeout=100000)
+    
+    task_idx = get_current_time()
+    score_list = cache.get(f"{request.user.email}_scorelist", [])
+    score_list.append({"id": task_idx, "status": "pending", "job_id": job.id, "data": {}, "source": "gmap"})
+    cache.set(f"{request.user.email}_scorelist", score_list,timeout=604800)
+    print(url_lead)
     return JsonResponse({"job_id": job.id})
 
 
@@ -75,21 +130,24 @@ def app_view_ecommerce(request):
     print("Views: app_view_ecommerce()")
     cache_id = f"{request.user.email}_ecommerce"
     print(cache_id)
+    score_list_id = f"{request.user.email}_scorelist"
+    score_list = cache.get(score_list_id)
+    # print(score_list)
     # Check if the request is made via HTMX
     if request.htmx:
             # Check if the clear cache action was triggered
         if 'clear_cache' in request.GET.keys():
             CACHE_ECOMMERCE = {}
             cache.set(cache_id, CACHE_ECOMMERCE, timeout=3600)
-            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
+            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {}), "score_list": score_list})
 
         # Check if the request is specifically from the left menu
         if 'hx_menu_request' in request.GET.keys():
             CACHE_ECOMMERCE = cache.get(cache_id)
             if CACHE_ECOMMERCE is not None:
-                return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
+                return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {}), "score_list": score_list})
             else:
-                return render(request, 'core/app/dashboard/app_ecommerce.html', {})
+                return render(request, 'core/app/dashboard/app_ecommerce.html', {"score_list": score_list})
         else:
             # Process the request as before
             CACHE_ECOMMERCE = {}
@@ -104,19 +162,22 @@ def app_view_ecommerce(request):
             cache.set(cache_id, CACHE_ECOMMERCE, timeout=3600)
 
             print("Load complete")
-            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
+            return render(request, 'core/app/dashboard/app_ecommerce.html', {'projects': CACHE_ECOMMERCE.get('data', {}), "score_list": score_list})
     else:
         CACHE_ECOMMERCE = cache.get(cache_id)
         if CACHE_ECOMMERCE is not None:
-            return render(request, 'core/app/dashboard/app_ecommerce_full.html', {'projects': CACHE_ECOMMERCE.get('data', {})})
+            return render(request, 'core/app/dashboard/app_ecommerce_full.html', {'projects': CACHE_ECOMMERCE.get('data', {}), "score_list": score_list})
         else:
-            return render(request, 'core/app/dashboard/app_ecommerce_full.html')
+            return render(request, 'core/app/dashboard/app_ecommerce_full.html', {"score_list": score_list})
+            # return render(request, 'core/app/dashboard/app_ecommerce_full.html')
 
 
 @login_required
 def app_view_gmap(request):
     print("Views: app_view_gmap()")
     cache_id = f"{request.user.email}_gmap"
+    score_list_id = f"{request.user.email}_scorelist"
+    score_list = cache.get(score_list_id)
     print(cache_id)
     # Check if the request is made via HTMX
     if request.htmx:
@@ -124,13 +185,13 @@ def app_view_gmap(request):
         if 'clear_cache' in request.GET.keys():
             CACHE_GMAP = {}
             cache.set(cache_id, CACHE_GMAP, timeout=3600)
-            return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP.get('data', {})})
+            return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP.get('data', {}), "score_list": score_list})
 
         # Check if the request is specifically from the left menu
         if 'hx_menu_request' in request.GET.keys():
             CACHE_GMAP = cache.get(cache_id)
             if CACHE_GMAP is not None:
-                return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP.get('data', {})})
+                return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP.get('data', {}), "score_list": score_list})
             else:
                 return render(request, 'core/app/dashboard/app_gmap.html', {})
         else:
@@ -145,13 +206,13 @@ def app_view_gmap(request):
             cache.set(cache_id, CACHE_GMAP, timeout=3600)
 
             print("Load complete")
-            return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP.get('data', {})})
+            return render(request, 'core/app/dashboard/app_gmap.html', {'projects': CACHE_GMAP.get('data', {}), "score_list": score_list})
     else:
         CACHE_GMAP = cache.get(cache_id)
         if CACHE_GMAP is not None:
-            return render(request, 'core/app/dashboard/app_gmap_full.html', {'projects': CACHE_GMAP.get('data', {})})
+            return render(request, 'core/app/dashboard/app_gmap_full.html', {'projects': CACHE_GMAP.get('data', {}), "score_list": score_list})
         else:
-            return render(request, 'core/app/dashboard/app_gmap_full.html')
+            return render(request, 'core/app/dashboard/app_gmap_full.html', {"score_list": score_list})
 
 
 

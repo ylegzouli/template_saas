@@ -21,6 +21,8 @@ urlpatterns = [
     path('check_task_status/<str:job_id>/', views.check_task_status, name='check_task_status'),
     path('check_task_status_gmap/<str:job_id>/', views.check_task_status_gmap, name='check_task_status_gmap '),
     
+    path('end_task/<str:job_id>/', views.end_task, name='end_task'),
+    path('load_score/<str:job_id>/', views.load_score, name='load_score'),
     # path('app/settings', views.settings_view, name='settings'),
 
 ]

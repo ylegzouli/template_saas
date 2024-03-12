@@ -6,7 +6,10 @@ import json
 from urllib.parse import urlparse
 import re
 import os
-
+from django.core.cache import cache
+from rq.job import Job
+from worker import conn
+from rq.command import send_kill_horse_command
 
 STORELEAD_APIKEY=os.getenv('STORELEADS_APIKEY')
 SCRAPIT_APIKEY=os.getenv('SCRAPIT_APIKEY')
@@ -19,6 +22,15 @@ city="Paris"
 url_lead_example='https://eclatparis.com/'
 revenue=None
 nb_results = 10
+
+from datetime import datetime
+
+def get_current_time():
+    # Get the current time
+    current_time = datetime.now()
+    # Convert to string
+    current_time_str = current_time.strftime("%Y-%m-%d %H:%M:%S")
+    return current_time_str
 
 def calculate_revenue(revenue):
     if revenue == "0-50k":
@@ -135,6 +147,37 @@ def add_score_list_data(list_data, url_lead_example, product):
     return result
 
 
+def update_job_status(cache_id, job_id, new_status):
+    print('Fuction: update_job_status()')
+    job_list = cache.get(cache_id)
+    for job in job_list:
+        if job['job_id'] == job_id:
+            job['status'] = new_status
+            break
+    cache.set(cache_id, job_list,timeout=604800)
+
+def update_job_data(cache_id, job_id, data):
+    print('Fuction: update_job_data()')
+    job_list = cache.get(cache_id)
+    for job in job_list:
+        if job['job_id'] == job_id:
+            job['data'] = data
+            break
+    cache.set(cache_id, job_list,timeout=604800)
+
+
+def stop_job(cache_id, job_id):
+    print("Function: stop_job()")
+    job_list = cache.get(cache_id)
+    updated_job_list = [job for job in job_list if job['job_id'] != job_id]
+    cache.set(cache_id, updated_job_list, timeout=604800)
+    try:
+        job = Job.fetch(job_id, connection=conn)
+        send_kill_horse_command(conn, job.worker_name)
+    except Exception as e:
+        print(e)
+    
+
 def extract_infos(info):
     print("Function: extract_infos()")
     email = []
@@ -211,8 +254,6 @@ def get_googlem_data(query, country: str = "", location: str = ""):
     return response.json()
 
 
-#%%
-
 
 def get_data_scrapit(query, country, city, page=0):
     print("Function: get_data_scrapit()")
@@ -227,7 +268,6 @@ def get_data_scrapit(query, country, city, page=0):
     response = requests.get(url, headers=headers)
 
     data = response.json()
-    # print(data)
 
     return data
 
