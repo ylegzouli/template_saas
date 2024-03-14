@@ -95,7 +95,7 @@ def choose_categorie(product):
             messages=[
                 # {"role": "system", "content": "User will give you some website content. you're job is identify the product which are sells by the website owner by checking the information provide in the website content. Alwais give me this list in english. you're answer have to contain only a list of product type separate by comma."},
                 {"role": "system", "content": """
-                 You are an AI assistant with the ability to understand and classify various products into specific categories based on their description, use, or target audience. Your goal is to analyze the product information provided by the user and accurately determine which of the following categories it belongs to: Home Decor, Food & Drink, Women, Beauty & Wellness, Jewellery, Paper & Novelty, Kids & Baby, Pets, or Men. Consider the product's features, purpose, and who it's primarily intended for while making your decision. Your classification will help organize products on a digital platform, enhancing the user experience by grouping similar items together. Please choose the most fitting category for each product presented to you, ensuring your selection aligns with the product's primary characteristics and intended use.
+                 You are an AI assistant with the ability to understand and classify various products into specific categories based on their description, use, or target audience. Your goal is to analyze the product information provided by the user and accurately determine which of the following categories it belongs to: Home Decor, Food & Drink, Women, Beauty & Wellness, Jewellery, Paper & Novelty, Kids & Baby, Pets, Men or Other. Consider the product's features, purpose, and who it's primarily intended for while making your decision. Your classification will help organize products on a digital platform, enhancing the user experience by grouping similar items together. Please choose the most fitting category for each product presented to you, ensuring your selection aligns with the product's primary characteristics and intended use.
                   Only answer with a categorie."""},
                 {"role": "user", "content": product}
             ]
@@ -315,8 +315,8 @@ def get_lead_insight(url, lead_type="target"):
 
 def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: str):
     print("Function: score_lead()")
-    score_product = eval_product(insight_base.products, insight_target.products)
-    print(score_product)
+    # score_product = eval_product(insight_base.products, insight_target.products)
+    # print(score_product)
     score_audience = eval_audience(insight_base.audiences, insight_target.audiences)
     print(score_audience)
     score_custom = custom_filter(insight_target.extracted_info, product)
@@ -349,11 +349,6 @@ def score_complete(insight_base: LeadInsight, url_target: str, product: str):
     print("Function: score_complete()")
     insight_target = get_lead_insight(url_target)
     categorie = insight_target.categorie
-    
-            # 'email': "\n".join(social.get('email', "")),
-            # 'instagram': social.get('instagram', None),
-            # 'linkedin': social.get('linkedin', None),
-            # 'facebook': social.get('facebook', None),
 
     return score_lead(insight_base, insight_target, product), categorie, insight_target.store_type
 
