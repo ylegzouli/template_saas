@@ -23,6 +23,7 @@ urlpatterns = [
     
     path('end_task/<str:job_id>/', views.end_task, name='end_task'),
     path('load_score/<str:job_id>/', views.load_score, name='load_score'),
-    # path('app/settings', views.settings_view, name='settings'),
+    path('app/settings', views.settings_view_ecom, name='settings'),
+    path('app/settings_gmap', views.settings_view_gmap, name='settings_gmap'),
 
 ]

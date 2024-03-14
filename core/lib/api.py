@@ -117,11 +117,12 @@ def get_domain_from_url(url):
     return domain
 
 
-def add_score_list_data(list_data, url_lead_example, product):
+def add_score_list_data(list_data, url_lead_example, product, lead_type):
     print("Function: add_score_list_data()")
     result = []
 
-    lead_base = get_lead_insight(url_lead_example)
+    lead_base = get_lead_insight(url_lead_example, lead_type="base")
+    lead_base.store_type = lead_type
 
     for data in list_data:
         try: 

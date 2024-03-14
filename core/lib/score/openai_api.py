@@ -52,7 +52,7 @@ def get_product_description(website_content):
     try:
         # content = scrape_website_content(url)
         result = client.chat.completions.create(
-            timeout=50,
+            timeout=30,
             model="gpt-3.5-turbo",
             # model="gpt-4",
             messages=[
@@ -71,7 +71,7 @@ def clean_categorie(categorie):
     print("Function: get_product_description()")
     try:
         result = client.chat.completions.create(
-            timeout=50,
+            timeout=30,
             model="gpt-3.5-turbo",
             # model="gpt-4",
             messages=[
@@ -85,12 +85,33 @@ def clean_categorie(categorie):
         print(e)
         return ""
 
+def choose_categorie(product):
+    print("Function: choose_categorie()")
+    try:
+        result = client.chat.completions.create(
+            timeout=30,
+            model="gpt-4",
+            # model="gpt-4",
+            messages=[
+                # {"role": "system", "content": "User will give you some website content. you're job is identify the product which are sells by the website owner by checking the information provide in the website content. Alwais give me this list in english. you're answer have to contain only a list of product type separate by comma."},
+                {"role": "system", "content": """
+                 You are an AI assistant with the ability to understand and classify various products into specific categories based on their description, use, or target audience. Your goal is to analyze the product information provided by the user and accurately determine which of the following categories it belongs to: Home Decor, Food & Drink, Women, Beauty & Wellness, Jewellery, Paper & Novelty, Kids & Baby, Pets, or Men. Consider the product's features, purpose, and who it's primarily intended for while making your decision. Your classification will help organize products on a digital platform, enhancing the user experience by grouping similar items together. Please choose the most fitting category for each product presented to you, ensuring your selection aligns with the product's primary characteristics and intended use.
+                  Only answer with a categorie."""},
+                {"role": "user", "content": product}
+            ]
+        )
+        return result.choices[0].message.content
+    except Exception as e:
+        print(e)
+        return ""
+
+
 def get_usertarget_description(website_content):
     print("Function: get_usertarget_description()")
     try:
         # content = scrape_website_content(url)
         result = client.chat.completions.create(
-            timeout=50,
+            timeout=30,
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "User will give you some website content. your job is identify the audience which are the target of the website by checking the information provide. Alwais give me this list in english describe the target by keyword. you're answer have to contain only a list of audience type separate by comma."},
@@ -108,12 +129,12 @@ def custom_filter(website_content, product):
     try:
         # content = scrape_website_content(url)
         result = client.chat.completions.create(
-            timeout=50,
+            timeout=30,
             model="gpt-3.5-turbo",
             messages=[
                 #  {"role": "system", "content": "Based on the website content provided by the user, your job is to analyze and identify the target audience. Return all the target audience separate by comma. Provide your answer in English."},
                 {"role": "system", "content": f"""
-                 User will give you some website content. you're job is answer by YES or NO to the question. Only answer YES if you are 100% sure of your answer. DID THEY SELL EXACTLY THIS PRODUCT: {product} ? If they don't sell EXACTLY THE SAME product, answer NO.
+                 You are tasked with determining whether a specific product is sold by a brand based on the provided info content. Your response should be straightforward: answer "YES" if the brand sells the product in question, and "NO" if they do not. Ensure your analysis is based directly on the information provided about the brand and product. the product is: {product} only answer by YES or NO.
                  """},
                 {"role": "user", "content": website_content}
             ]
@@ -123,19 +144,37 @@ def custom_filter(website_content, product):
         print(e)
         return ""
     
-def store_type_function(website_content):
-    print("Function: store_type()")
+def extract_website_info(website_content):
+    print("Phase 1: extract_website_info()")
     try:
-        # content = scrape_website_content(url)
         result = client.chat.completions.create(
-            timeout=50,
+            timeout=30,
             model="gpt-3.5-turbo",
             messages=[
-                #  {"role": "system", "content": "Based on the website content provided by the user, your job is to analyze and identify the target audience. Return all the target audience separate by comma. Provide your answer in English."},
-                {"role": "system", "content": f"""
-                 User will give you some website content. you're job is answer by BRAND or RETAILER to the question: is this a brand website or a retailer website ? Only answer by BRAND or RETAILER or OTHER.
-                 """},
+                {"role": "system", "content": """
+Analyze the given website content and extract features that indicate whether the website is a BRAND, RETAILER, or OTHER. Look for keywords, phrases, product or service focus, and content type. Product is the key. Summarize your findings in a structured format.
+                """},
                 {"role": "user", "content": website_content}
+            ]
+        )
+        # Extracting information and returning it
+        return result.choices[0].message.content
+    except Exception as e:
+        print(e)
+        return "" 
+
+def classify_website(extracted_info):
+    print("Phase 2: classify_website()")
+    try:
+        result = client.chat.completions.create(
+            timeout=30,
+            model="gpt-3.5-turbo",  # Update this to your GPT-4 model identifier if different
+            messages=[
+                {"role": "system", "content": """
+Based on the extracted information, classify the website as BRAND, RETAILER, or OTHER. Use the provided insights to make an informed decision.
+Only answer with: BRAND, RETAILER or OTHER.
+                """},
+                {"role": "user", "content": extracted_info}
             ]
         )
         return result.choices[0].message.content
@@ -143,11 +182,20 @@ def store_type_function(website_content):
         print(e)
         return ""
 
+    
+def store_type_function(extracted_info):
+    print("Function: store_type()")
+    # print(extracted_info)
+    classification = classify_website(extracted_info)
+    print(classification)    
+    return classification
+
+
 def eval_product(product_1, product_2):
     print("Function: eval_product()")
     try:
         result = client.chat.completions.create(
-            timeout=50,
+            timeout=30,
             model="gpt-4",
             messages=[
                 {"role": "system", "content": f"""
@@ -171,7 +219,7 @@ def get_similar_query(query):
     print("Function: get_similar_query()")
     try:
         result = client.chat.completions.create(
-            timeout=50,
+            timeout=30,
             model="gpt-4",
             messages=[
                 {"role": "system", "content": f"""
@@ -193,6 +241,7 @@ def eval_audience(audience_1, audience_2):
     try:
         result = client.chat.completions.create(
             model="gpt-4",
+            timeout=30,
             messages=[
                 {"role": "system", "content": f"""
                  user will provide you two list of users audiences, your job is to answer the question: is there similarity beetween the two audience taking care of the audience's revenu and audience's loves?
@@ -227,29 +276,41 @@ def are_CA_similar(CA1, CA2, threshold_percentage=30):
 
 
 class LeadInsight():
+    extracted_info: str
     website_content: str
     products: str
     audiences: str
     store_type: str
 
-    def __init__(self, website_content: str, products: str, audiences: str, store_type: str):
+
+    def __init__(self, website_content: str, products: str, audiences: str, store_type: str, categorie:str, extracted_info:str):
+        self.extracted_info = extracted_info
         self.website_content = website_content
         self.products = products
         self.audiences = audiences
         self.store_type = store_type
+        self.categorie= categorie
 
 
-def get_lead_insight(url):
+
+def get_lead_insight(url, lead_type="target"):
     print("Function: get_lead_insight()")
     content = scrape_website_content(url)
+    extracted_info = extract_website_info(content)
     products = get_product_description(content)
+    categorie = choose_categorie(products)
     audiences = get_usertarget_description(content)
-    store_type = store_type_function(content)
+    if lead_type == "target":
+        store_type = store_type_function(extracted_info)
+    else:
+        store_type = ""
     return LeadInsight(
+        extracted_info=extracted_info,
         website_content=content,
         products=products,
         audiences=audiences,
         store_type=store_type,
+        categorie=categorie
     )
 
 def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: str):
@@ -258,19 +319,28 @@ def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: 
     print(score_product)
     score_audience = eval_audience(insight_base.audiences, insight_target.audiences)
     print(score_audience)
-    score_custom = custom_filter(insight_target.website_content, product)
+    score_custom = custom_filter(insight_target.extracted_info, product)
     print(score_custom)
 
 
     score = 0
-    if score_product.lower().find("yes") == 0:
+    # if score_product.lower().find("yes") == 0:
+        # score += 1
+    print("Fuction: check_categorie")
+    if insight_base.categorie.lower().find(insight_target.categorie.lower()) == 0:
+        print("YES")
         score += 1
     if score_audience.lower().find('yes') == 0:
         score += 2
     if score_custom.lower().find("yes") == 0:
         score += 1
+    print("Fuction: check_type")
     if insight_base.store_type.lower().find(insight_target.store_type.lower()) == 0:
+        print("YES")
         score += 1
+    else:
+        print("NO")
+
 
     print("⭐" * (score + 1))
     return "⭐" * (score + 1)
@@ -278,7 +348,7 @@ def score_lead(insight_base: LeadInsight, insight_target: LeadInsight, product: 
 def score_complete(insight_base: LeadInsight, url_target: str, product: str):
     print("Function: score_complete()")
     insight_target = get_lead_insight(url_target)
-    categorie = clean_categorie(insight_target.products)
+    categorie = insight_target.categorie
     
             # 'email': "\n".join(social.get('email', "")),
             # 'instagram': social.get('instagram', None),

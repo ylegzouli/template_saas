@@ -220,13 +220,16 @@
 
           <div class="flex justify-between items-center mt-4 px-4 bg-white shadow-sm rounded-lg pt-1 pb-1 mb-3 pt-4 pb-4">
             <!-- Score Form on the Left -->
-            <div>
+            <!-- <div>
                 <form id="scoreForm" class="flex items-end">
                     {% csrf_token %}
                     <input type="text" name="lead_url" class="py-1.5 pl-3 pr-4 w-96 rounded-md bg-gray-100 text-gray-400 focus:ring-1 focus:ring-black focus:border-transparent focus:outline-none" placeholder="Ideal Customer Website" />
                     <button id="startTaskButton" type="submit" class="ml-2 px-4 py-1.5 bg-black text-white rounded-md hover:bg-gray-800">Score ⭐</button>
                 </form>
-            </div>
+            </div> -->
+            <button id="clearCacheButton" hx-get="/app/settings_gmap" hx-target="#loading-table" hx-trigger="click" hx-swap="innerHTML" class="px-4 py-1.5 w-32 bg-white hover:bg-gray-800 hover:text-white rounded-md focus:outline-none focus:shadow-outline border border-black">
+                Score ⭐
+            </button>
         
             <!-- Other Buttons on the Right -->
             <div>
@@ -328,35 +331,35 @@ $(document).ready(function() {
         }
     }
 
-    $('#startTaskButton').click(function(event) {
-        event.preventDefault();
-        startTask();
-    });
+    // $('#startTaskButton').click(function(event) {
+    //     event.preventDefault();
+    //     startTask();
+    // });
 });
 
-function startTask() {
-    // Simulate starting a task on the server
-    $.ajax({
-        url: '/start_task_gmap/', // Adjust URL to your task starting endpoint
-        type: 'POST',
-        data: $('#scoreForm').serialize(),
-        success: function(response) {
-            if (response.job_id) {
-                localStorage.setItem('taskInProgress', 'true');
-                localStorage.setItem('jobId', response.job_id); // Store the job ID for status checks
-                lockButtons();
-                window.location.reload(true);
-                checkTaskStatus(response.job_id);
-            } else {
-                alert("Failed to start task. Please try again.");
-            }
-        },
-        error: function() {
-            alert("An error occurred. Please try again.");
-            unlockButtons();
-        }
-    });
-}
+// function startTask() {
+//     // Simulate starting a task on the server
+//     $.ajax({
+//         url: '/start_task_gmap/', // Adjust URL to your task starting endpoint
+//         type: 'POST',
+//         data: $('#scoreForm').serialize(),
+//         success: function(response) {
+//             if (response.job_id) {
+//                 localStorage.setItem('taskInProgress', 'true');
+//                 localStorage.setItem('jobId', response.job_id); // Store the job ID for status checks
+//                 lockButtons();
+//                 window.location.reload(true);
+//                 checkTaskStatus(response.job_id);
+//             } else {
+//                 alert("Failed to start task. Please try again.");
+//             }
+//         },
+//         error: function() {
+//             alert("An error occurred. Please try again.");
+//             unlockButtons();
+//         }
+//     });
+// }
 
 function checkTaskStatus(jobId) {
     $.ajax({

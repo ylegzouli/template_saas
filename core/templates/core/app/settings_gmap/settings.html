@@ -51,7 +51,7 @@
                                     </select>
                                 </div>
 
-                                <button id="startTaskButton" type="submit" class="px-4 m-3 py-1.5 bg-black text-white rounded-md hover:bg-gray-800">Score ⭐</button>
+                                <button id="startTaskButtonGmap" type="submit" class="px-4 m-3 py-1.5 bg-black text-white rounded-md hover:bg-gray-800">Score ⭐</button>
                             
                             </form>
                         </div>
@@ -61,16 +61,16 @@
     $(document).ready(function() {
 
         // Using delegated event binding for dynamic elements
-        $(document).on('click', '#startTaskButton', function(event) {
+        $(document).on('click', '#startTaskButtonGmap', function(event) {
             event.preventDefault(); // Prevent the default form submit action
-            startTask_ecom(); // Call the function to start the task
+            startTask_gmap(); // Call the function to start the task
         });
     });
 
 
-    function startTask_ecom() {
+    function startTask_gmap() {
         $.ajax({
-            url: '/start_task/', // Adjust URL to your task starting endpoint
+            url: '/start_task_gmap/', // Adjust URL to your task starting endpoint
             type: 'POST',
             data: $('#scoreInfo').serialize(), // Serialize form data
             success: function(response) {
@@ -79,7 +79,7 @@
                     localStorage.setItem('jobId', response.job_id); // Store the job ID
                     lockButtons();
                     window.location.reload(true);
-                    checkTaskStatus_ecom(response.job_id);
+                    checkTaskStatus(response.job_id);
                 } else {
                     alert("Failed to start task. Please try again.");
                 }
