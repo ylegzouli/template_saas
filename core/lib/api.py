@@ -83,7 +83,7 @@ def get_company_list(query=query, location=location, city=city, revenue=revenue,
                 "min": 1
             }
         }),
-        'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales',
+        'fields': 'street_address,name,merchant_name,categories, contact_info, employee_count, estimated_sales, created_at',
         'page_size': nb_results,
 
      }    
@@ -231,7 +231,8 @@ def format_json_response(json_response):
             'nb_employee': item.get('employee_count', ""),
             'ca': ca,
             'adress': None,
-            'source': "storelead"
+            'source': "storelead",
+            'create_at': item.get('created_at')
         }
         formatted_data.append(formatted_item)
     return formatted_data

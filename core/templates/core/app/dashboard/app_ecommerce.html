@@ -171,6 +171,7 @@
                     <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Phones</th>
                     <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">CA</th>
                     <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Nb employee</th>
+                    <th class="whitespace-nowrap px-4 py-2 border-l font-l text-gray-900">Create at</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -236,6 +237,7 @@
 
                     <td class="whitespace-nowrap border-l  px-4 py-2 text-gray-700">{{ project.ca }}</td>
                     <td class="whitespace-nowrap border-l  px-4 py-2 text-gray-700">{{ project.nb_employee }}</td>
+                    <td class="whitespace-nowrap border-l  px-4 py-2 text-gray-700">{{ project.create_at }}</td>
                   </tr>
                   {% endfor %}
                   <!-- Dynamic row generation ends here -->
@@ -295,7 +297,7 @@ document.body.addEventListener('htmx:afterRequest', function() {
 document.getElementById('exportButton').addEventListener('click', function() {
     var table = document.getElementById('loading-table');
     // Corrected the first row for column names to match your table structure
-    var data = [['Score', 'Name', 'Link','Categories', 'Type', 'LinkedIn', 'Instagram', 'Facebook', 'Email', 'Phones', 'CA', 'Nb Employee']];
+    var data = [['Score', 'Name', 'Link','Categories', 'Type', 'LinkedIn', 'Instagram', 'Facebook', 'Email', 'Phones', 'CA', 'Nb Employee', 'create_at']];
 
     // Get all rows in the table body
     var rows = table.querySelectorAll('tbody tr');
@@ -318,9 +320,10 @@ document.getElementById('exportButton').addEventListener('click', function() {
             var phone = row.cells[9].innerText.trim().replace(/\s+/g, ', '); // Assuming phones are separated by whitespace/new lines
             var ca = row.cells[10].innerText.trim();
             var nb_employee = row.cells[11].innerText.trim();
+            var create_at = row.cells[12].innerText.trim();
 
             // Add this row's data to the export array
-            data.push([score, name, link, categories, types, linkedInUrl, instagramUrl, facebookUrl, email, phone, ca, nb_employee]);
+            data.push([score, name, link, categories, types, linkedInUrl, instagramUrl, facebookUrl, email, phone, ca, nb_employee, create_at]);
         }
     });
 
